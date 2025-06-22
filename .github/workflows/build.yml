@@ -1,0 +1,61 @@
+name: 📦 Build APK & Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: 🧪 Build & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.4'
+
+      - name: 🧪 Check Flutter & Dart version
+        run: |
+          flutter --version
+          dart --version
+
+      - name: 📦 Install Dependencies
+        run: flutter pub get
+
+      - name: 🔄 Upgrade all packages
+        run: flutter pub upgrade
+
+      - name: 📝 Commit updated pubspec.lock and tag if changed
+        run: |
+          version=$(grep version pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d '+' -f1)
+          tag="v$version"
+
+          if git diff --quiet pubspec.lock; then
+            echo "📦 Keine Änderungen an pubspec.lock"
+          else
+            echo "📦 Änderungen an pubspec.lock erkannt – wird committet"
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add pubspec.lock
+            git commit -m "⬆️ Auto-Update pubspec.lock für Release $tag"
+            git tag $tag
+            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} $tag
+          fi
+
+      - name: 🏗️ Build Release APK
+        run: flutter build apk --release
+
+      - name: 🗂 Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.extract_tag.outputs.version }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

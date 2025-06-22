@@ -1,0 +1,12 @@
+# Treat all Dart files as text and use LF
+*.dart text eol=lf
+
+# Mark image assets as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.svg text
+
+# Flutter config
+pubspec.yaml text
