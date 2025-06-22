@@ -1,5 +1,3 @@
-// Fragen 1–20, offizielle Sachkundefragen NRW, Stand 01.01.2025
-
 final List<Question> questions = [
   Question(
     id: 1,
