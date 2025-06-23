@@ -1,61 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'theme/theme_notifier.dart';
+import 'screens/dashboard_screen.dart';
 import 'screens/quiz_screen.dart';
+import 'screens/settings_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final themeNotifier = ThemeNotifier();
+  await themeNotifier.loadThemeMode();
+  runApp(
+    ChangeNotifierProvider<ThemeNotifier>.value(
+      value: themeNotifier,
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final mode = prefs.getString('theme_mode') ?? 'system';
-    setState(() {
-      _themeMode = switch (mode) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
-      };
-    });
-  }
-
-  Future<void> _toggleTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      if (_themeMode == ThemeMode.light) {
-        _themeMode = ThemeMode.dark;
-        prefs.setString('theme_mode', 'dark');
-      } else {
-        _themeMode = ThemeMode.light;
-        prefs.setString('theme_mode', 'light');
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // MaterialApp verwendet die aktuelle Theme-Auswahl über Provider
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+
     return MaterialApp(
       title: 'Sachkundenachweis',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: _themeMode,
-      home: QuizScreen(toggleTheme: _toggleTheme),
+      theme: AppThemes.calmNatureLight,
+      darkTheme: AppThemes.calmNatureDark,
+      themeMode: themeNotifier.materialThemeMode,
+      home: const MainNavigation(),
+    );
+  }
+}
+
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _selectedIndex = 0;
+  static final List<Widget> _screens = [
+    DashboardScreen(),
+    QuizScreen(toggleTheme: () {}), // toggleTheme-Callback optional, Provider übernimmt Themewechsel!
+    SettingsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (idx) => setState(() => _selectedIndex = idx),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.quiz), label: 'Quiz'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Einstellungen'),
+        ],
+      ),
     );
   }
 }

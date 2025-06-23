@@ -5,7 +5,6 @@ import '../storage/progress_storage.dart';
 
 class QuizScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
-
   const QuizScreen({super.key, required this.toggleTheme});
 
   @override
@@ -34,7 +33,6 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       submitted = true;
     });
-
     if (isSelectionCorrect()) {
       await ProgressStorage.incrementCorrect(currentQuestion.id);
     }
@@ -67,84 +65,139 @@ class _QuizScreenState extends State<QuizScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
+            tooltip: 'Theme wechseln',
             onPressed: widget.toggleTheme,
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView( // <--- SCROLL-FIX HIER
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                q.questionText,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              if (q.imageAsset != null)
-                Center(
-                  child: Image.asset(
-                    q.imageAsset!,
-                    height: 200,
-                    fit: BoxFit.contain,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 600;
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isWide ? 700 : double.infinity,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        q.questionText,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 18),
+                      if (q.imageAsset != null)
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.asset(
+                              q.imageAsset!,
+                              height: isWide ? 260 : 200,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 18),
+                      ...List.generate(q.options.length, (index) {
+                        final isSelected = selectedAnswers.contains(index);
+                        final isCorrect = isCorrectAnswer(index);
+
+                        Color? tileColor;
+                        IconData? icon;
+                        Color? iconColor;
+
+                        if (submitted) {
+                          if (isCorrect && isSelected) {
+                            tileColor = Colors.green.withOpacity(0.20);
+                            icon = Icons.check_circle;
+                            iconColor = Colors.green;
+                          } else if (!isCorrect && isSelected) {
+                            tileColor = Colors.red.withOpacity(0.17);
+                            icon = Icons.cancel;
+                            iconColor = Colors.red;
+                          } else if (isCorrect && !isSelected) {
+                            tileColor = Colors.yellow.withOpacity(0.20);
+                            icon = Icons.warning_amber_rounded;
+                            iconColor = Colors.orange;
+                          }
+                        } else if (isSelected) {
+                          tileColor = Theme.of(context).colorScheme.secondary.withOpacity(0.14);
+                        }
+
+                        return Card(
+                          elevation: 2,
+                          color: tileColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ListTile(
+                            onTap: () => toggleAnswer(index),
+                            leading: Checkbox(
+                              value: isSelected,
+                              onChanged: (_) => toggleAnswer(index),
+                              activeColor: Theme.of(context).colorScheme.primary,
+                            ),
+                            title: Text(
+                              q.options[index],
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            trailing: icon != null ? Icon(icon, color: iconColor) : null,
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 20),
+                      if (!submitted)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.check),
+                            label: const Text("Antwort prüfen"),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(13),
+                              ),
+                            ),
+                            onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
+                          ),
+                        )
+                      else ...[
+                        if (!isSelectionCorrect())
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              "Erklärung: ${q.explanation}",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.arrow_forward),
+                            label: const Text("Nächste Frage"),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: nextQuestion,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              const SizedBox(height: 16),
-              ...List.generate(q.options.length, (index) {
-                final isSelected = selectedAnswers.contains(index);
-                final isCorrect = isCorrectAnswer(index);
-
-                Color? tileColor;
-                IconData? icon;
-
-                if (submitted) {
-                  if (isCorrect && isSelected) {
-                    tileColor = Colors.green.shade100;
-                    icon = Icons.check_circle;
-                  } else if (!isCorrect && isSelected) {
-                    tileColor = Colors.red.shade100;
-                    icon = Icons.cancel;
-                  } else if (isCorrect && !isSelected) {
-                    tileColor = Colors.yellow.shade100;
-                    icon = Icons.warning;
-                  }
-                }
-
-                return Card(
-                  color: tileColor,
-                  child: ListTile(
-                    onTap: () => toggleAnswer(index),
-                    leading: Checkbox(
-                      value: isSelected,
-                      onChanged: (_) => toggleAnswer(index),
-                    ),
-                    title: Text(q.options[index]),
-                    trailing: icon != null ? Icon(icon) : null,
-                  ),
-                );
-              }),
-              const SizedBox(height: 16),
-              if (!submitted)
-                ElevatedButton(
-                  onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
-                  child: const Text("Weiter"),
-                )
-              else ...[
-                if (!isSelectionCorrect())
-                  Text(
-                    "Erklärung: ${q.explanation}",
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: nextQuestion,
-                  child: const Text("Nächste Frage"),
-                )
-              ]
-            ],
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

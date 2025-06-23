@@ -31,25 +31,44 @@ class QuestionCard extends StatelessWidget {
         const SizedBox(height: 16),
         if (question.imageAsset != null)
           Center(
-            child: Image.asset(
-              question.imageAsset!,
-              height: 200,
-              fit: BoxFit.contain,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                question.imageAsset!,
+                height: 200,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         const SizedBox(height: 16),
         ...List.generate(question.options.length, (index) {
           final isSelected = selectedAnswers.contains(index);
 
+          Color? tileColor;
+          if (feedbackColor != null) {
+            tileColor = feedbackColor!(index);
+          } else if (isSelected && !submitted) {
+            // Nutze Theme Secondary für Auswahl
+            tileColor = Theme.of(context).colorScheme.secondary.withOpacity(0.13);
+          }
+
           return Card(
-            color: feedbackColor != null ? feedbackColor!(index) : null,
+            elevation: 2,
+            color: tileColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(13),
+            ),
             child: ListTile(
               onTap: () => onToggle(index),
               leading: Checkbox(
                 value: isSelected,
                 onChanged: (_) => onToggle(index),
+                activeColor: Theme.of(context).colorScheme.primary,
               ),
-              title: Text(question.options[index]),
+              title: Text(
+                question.options[index],
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
               trailing: feedbackIcon != null ? Icon(feedbackIcon!(index)) : null,
             ),
           );

@@ -1,0 +1,227 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+enum AppThemeMode {
+  system,
+  calmNature,
+  brightMinimal,
+  darkElegant,
+}
+
+class ThemeNotifier extends ChangeNotifier {
+  AppThemeMode _themeMode = AppThemeMode.system;
+
+  // Getter/Setter für UI, Settings etc.
+  AppThemeMode get themeMode => _themeMode;
+  set themeMode(AppThemeMode mode) {
+    _themeMode = mode;
+    _saveThemeMode();
+    notifyListeners();
+  }
+
+  // Für MaterialApp (systemabhängig oder hell)
+  ThemeMode get materialThemeMode => _themeMode == AppThemeMode.system
+      ? ThemeMode.system
+      : ThemeMode.light;
+
+  // Für individuelle ThemeData-Nutzung in Widgets
+  ThemeData getThemeData(Brightness brightness) {
+    switch (_themeMode) {
+      case AppThemeMode.calmNature:
+        return brightness == Brightness.dark
+            ? AppThemes.calmNatureDark
+            : AppThemes.calmNatureLight;
+      case AppThemeMode.brightMinimal:
+        return brightness == Brightness.dark
+            ? AppThemes.brightMinimalDark
+            : AppThemes.brightMinimalLight;
+      case AppThemeMode.darkElegant:
+        return brightness == Brightness.dark
+            ? AppThemes.darkElegantDark
+            : AppThemes.darkElegantLight;
+      case AppThemeMode.system:
+        return brightness == Brightness.dark
+            ? AppThemes.calmNatureDark
+            : AppThemes.calmNatureLight;
+    }
+  }
+
+  // Theme-Modus aus dem Speicher laden
+  Future<void> loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getInt('theme_mode') ?? 0;
+    _themeMode = AppThemeMode.values[value];
+    notifyListeners();
+  }
+
+  // Theme-Modus speichern
+  Future<void> _saveThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_mode', _themeMode.index);
+  }
+}
+
+// ---------- Themes ----------
+class AppThemes {
+  // Calm Nature – Light
+  static final ThemeData calmNatureLight = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: const Color(0xFF388E3C),
+    scaffoldBackgroundColor: const Color(0xFFFFF8E1),
+    cardColor: Colors.white,
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFF388E3C),
+      secondary: Color(0xFFA5D6A7),
+      background: Color(0xFFFFF8E1),
+    ),
+    fontFamily: 'Montserrat',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF388E3C),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF388E3C),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF388E3C),
+      unselectedItemColor: Colors.grey,
+      backgroundColor: Colors.white,
+    ),
+  );
+
+  // Calm Nature – Dark
+  static final ThemeData calmNatureDark = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: const Color(0xFF29602E),
+    scaffoldBackgroundColor: const Color(0xFF1B1B1B),
+    cardColor: const Color(0xFF23272A),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF66BB6A),
+      secondary: Color(0xFFA5D6A7),
+      background: Color(0xFF23272A),
+    ),
+    fontFamily: 'Montserrat',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF29602E),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF388E3C),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF66BB6A),
+      unselectedItemColor: Colors.white70,
+      backgroundColor: Color(0xFF23272A),
+    ),
+  );
+
+  // Bright Minimal – Light
+  static final ThemeData brightMinimalLight = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: const Color(0xFF00B8D4),
+    scaffoldBackgroundColor: Colors.white,
+    cardColor: Colors.white,
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFF00B8D4),
+      secondary: Color(0xFFFFB300),
+      background: Colors.white,
+      tertiary: Color(0xFFD1C4E9),
+    ),
+    fontFamily: 'Inter',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF00B8D4),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF00B8D4),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF00B8D4),
+      unselectedItemColor: Colors.grey,
+      backgroundColor: Colors.white,
+    ),
+  );
+
+  // Bright Minimal – Dark
+  static final ThemeData brightMinimalDark = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: const Color(0xFF0097A7),
+    scaffoldBackgroundColor: const Color(0xFF181A20),
+    cardColor: const Color(0xFF23272A),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF00B8D4),
+      secondary: Color(0xFFFFB300),
+      background: Color(0xFF23272A),
+      tertiary: Color(0xFFD1C4E9),
+    ),
+    fontFamily: 'Inter',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF0097A7),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF00B8D4),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF00B8D4),
+      unselectedItemColor: Colors.white70,
+      backgroundColor: Color(0xFF23272A),
+    ),
+  );
+
+  // Dark Elegant – Light
+  static final ThemeData darkElegantLight = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: const Color(0xFF23272A),
+    scaffoldBackgroundColor: const Color(0xFFF5F6FA),
+    cardColor: Colors.white,
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFF23272A),
+      secondary: Color(0xFF1ABC9C),
+      background: Color(0xFFF5F6FA),
+      tertiary: Color(0xFF00E676),
+      error: Color(0xFFFFD600),
+    ),
+    fontFamily: 'Nunito',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF23272A),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF1ABC9C),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF1ABC9C),
+      unselectedItemColor: Colors.grey,
+      backgroundColor: Colors.white,
+    ),
+  );
+
+  // Dark Elegant – Dark
+  static final ThemeData darkElegantDark = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: const Color(0xFF23272A),
+    scaffoldBackgroundColor: const Color(0xFF181A20),
+    cardColor: const Color(0xFF23272A),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF1ABC9C),
+      secondary: Color(0xFF00E676),
+      background: Color(0xFF181A20),
+      tertiary: Color(0xFFFFD600),
+      error: Color(0xFFFFD600),
+    ),
+    fontFamily: 'Nunito',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF23272A),
+      foregroundColor: Colors.white,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFF1ABC9C),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: Color(0xFF00E676),
+      unselectedItemColor: Colors.white70,
+      backgroundColor: Color(0xFF23272A),
+    ),
+  );
+}

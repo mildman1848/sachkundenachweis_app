@@ -9,11 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # Lokale Speicherung
+
+  # State Management (für Multi-Theme und Co.)
+  provider: ^6.1.2
+
+  # Lokale Speicherung für Fortschritt & Theme
   shared_preferences: ^2.2.2
 
-  # Fortschrittsanzeige (Diagramme)
+  # Fortschrittsanzeige (Diagramme, optional)
   fl_chart: ^1.0.0
 
   # Icons im Cupertino-Stil (optional)
@@ -22,11 +25,29 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
   flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
 
+  # Bilder/Assets
   assets:
     - assets/images/
+
+  # Fonts für Themes (empfohlen, falls nicht schon in assets!)
+  fonts:
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+        - asset: assets/fonts/Montserrat-Bold.ttf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
