@@ -1,15 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/questions.dart';
-import '../models/question_model.dart';
 
 class ProgressDashboard {
   static const String _prefix = 'question_';
-
-  // Hilfsfunktion – korrekt beantwortet?
-  static Future<int> _getCorrectCount(int id) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('$_prefix${id}_correct') ?? 0;
-  }
 
   // Gibt pro Kategorie zurück, wie viele Fragen gelernt sind (>= threshold)
   static Future<Map<String, int>> getLearnedCountByCategory({int threshold = 3}) async {
