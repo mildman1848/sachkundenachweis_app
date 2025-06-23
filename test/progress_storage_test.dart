@@ -1,11 +1,19 @@
-// test/progress_storage_test.dart
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sachkundenachweis/storage/progress_storage.dart';
 
 void main() {
+  // Initialisiert das Flutter Binding (notwendig für SharedPreferences im Test)
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    // Setzt einen leeren Speicher (Mock) für jeden Testlauf
+    SharedPreferences.setMockInitialValues({});
+  });
+
   test('Increment and get correct count', () async {
     final questionId = 42;
+
     await ProgressStorage.resetProgress(questionId);
     await ProgressStorage.incrementCorrect(questionId);
     await ProgressStorage.incrementCorrect(questionId);

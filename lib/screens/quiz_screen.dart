@@ -73,75 +73,77 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              q.questionText,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            if (q.imageAsset != null)
-              Center(
-                child: Image.asset(
-                  q.imageAsset!,
-                  height: 200,
-                  fit: BoxFit.contain,
-                ),
+        child: SingleChildScrollView( // <--- SCROLL-FIX HIER
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                q.questionText,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            const SizedBox(height: 16),
-            ...List.generate(q.options.length, (index) {
-              final isSelected = selectedAnswers.contains(index);
-              final isCorrect = isCorrectAnswer(index);
-
-              Color? tileColor;
-              IconData? icon;
-
-              if (submitted) {
-                if (isCorrect && isSelected) {
-                  tileColor = Colors.green.shade100;
-                  icon = Icons.check_circle;
-                } else if (!isCorrect && isSelected) {
-                  tileColor = Colors.red.shade100;
-                  icon = Icons.cancel;
-                } else if (isCorrect && !isSelected) {
-                  tileColor = Colors.yellow.shade100;
-                  icon = Icons.warning;
-                }
-              }
-
-              return Card(
-                color: tileColor,
-                child: ListTile(
-                  onTap: () => toggleAnswer(index),
-                  leading: Checkbox(
-                    value: isSelected,
-                    onChanged: (_) => toggleAnswer(index),
+              const SizedBox(height: 16),
+              if (q.imageAsset != null)
+                Center(
+                  child: Image.asset(
+                    q.imageAsset!,
+                    height: 200,
+                    fit: BoxFit.contain,
                   ),
-                  title: Text(q.options[index]),
-                  trailing: icon != null ? Icon(icon) : null,
                 ),
-              );
-            }),
-            const SizedBox(height: 16),
-            if (!submitted)
-              ElevatedButton(
-                onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
-                child: const Text("Weiter"),
-              )
-            else ...[
-              if (!isSelectionCorrect())
-                Text(
-                  "Erklärung: ${q.explanation}",
-                  style: const TextStyle(color: Colors.red),
-                ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: nextQuestion,
-                child: const Text("Nächste Frage"),
-              )
-            ]
-          ],
+              const SizedBox(height: 16),
+              ...List.generate(q.options.length, (index) {
+                final isSelected = selectedAnswers.contains(index);
+                final isCorrect = isCorrectAnswer(index);
+
+                Color? tileColor;
+                IconData? icon;
+
+                if (submitted) {
+                  if (isCorrect && isSelected) {
+                    tileColor = Colors.green.shade100;
+                    icon = Icons.check_circle;
+                  } else if (!isCorrect && isSelected) {
+                    tileColor = Colors.red.shade100;
+                    icon = Icons.cancel;
+                  } else if (isCorrect && !isSelected) {
+                    tileColor = Colors.yellow.shade100;
+                    icon = Icons.warning;
+                  }
+                }
+
+                return Card(
+                  color: tileColor,
+                  child: ListTile(
+                    onTap: () => toggleAnswer(index),
+                    leading: Checkbox(
+                      value: isSelected,
+                      onChanged: (_) => toggleAnswer(index),
+                    ),
+                    title: Text(q.options[index]),
+                    trailing: icon != null ? Icon(icon) : null,
+                  ),
+                );
+              }),
+              const SizedBox(height: 16),
+              if (!submitted)
+                ElevatedButton(
+                  onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
+                  child: const Text("Weiter"),
+                )
+              else ...[
+                if (!isSelectionCorrect())
+                  Text(
+                    "Erklärung: ${q.explanation}",
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: nextQuestion,
+                  child: const Text("Nächste Frage"),
+                )
+              ]
+            ],
+          ),
         ),
       ),
     );
