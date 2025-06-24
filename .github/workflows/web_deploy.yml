@@ -1,0 +1,34 @@
+name: 🚀 Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.4'
+
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      - name: 🏗️ Build Flutter Web
+        run: flutter build web --release --base-href="/sachkundenachweis_app/"
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GIT_TOKEN }}
+          publish_dir: build/web
+          # Die folgenden Optionen sorgen für "saubere" Deployments:
+          force_orphan: true
