@@ -2,14 +2,15 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../data/questions.dart';
 import '../models/question_model.dart';
 import '../storage/progress_storage.dart';
 import '../data/question_categories.dart';
+import '../theme/theme_notifier.dart';
 
 class QuizScreen extends StatefulWidget {
-  final VoidCallback toggleTheme;
-  const QuizScreen({super.key, required this.toggleTheme});
+  const QuizScreen({super.key});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -48,19 +49,15 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       submitted = true;
     });
-    // Tracking: aktuelle Antwort speichern (true/falsch)
     await ProgressStorage.addAnswerResult(
         currentQuestion.id, isSelectionCorrect());
   }
 
-  // Bestimme nächsten zufälligen Index mit Bevorzugung ungelernter Fragen
   Future<int> pickNextRandomIndex() async {
-    // Lese Lernstatus für alle Fragen asynchron
     final isLearnedMap = <int, bool>{};
     for (final q in questions) {
       isLearnedMap[q.id] = await ProgressStorage.isLearned(q.id);
     }
-    // Gewichtete Liste: ungelernte Fragen x3, gelernte x1
     final weighted = <int>[];
     for (var i = 0; i < questions.length; i++) {
       if (isLearnedMap[questions[i].id] == true) {
@@ -96,6 +93,14 @@ class _QuizScreenState extends State<QuizScreen> {
         selectedAnswers.containsAll(currentQuestion.correctAnswers);
   }
 
+  void _cycleTheme(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+    final current = themeNotifier.themeMode;
+    final values = AppThemeMode.values;
+    final next = values[(current.index + 1) % values.length];
+    themeNotifier.themeMode = next;
+  }
+
   @override
   Widget build(BuildContext context) {
     final q = currentQuestion;
@@ -107,7 +112,7 @@ class _QuizScreenState extends State<QuizScreen> {
           IconButton(
             icon: const Icon(Icons.brightness_6),
             tooltip: 'Theme wechseln',
-            onPressed: widget.toggleTheme,
+            onPressed: () => _cycleTheme(context),
           )
         ],
       ),

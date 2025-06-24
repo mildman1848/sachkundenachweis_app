@@ -22,7 +22,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp verwendet die aktuelle Theme-Auswahl über Provider
     final themeNotifier = Provider.of<ThemeNotifier>(context);
 
     return MaterialApp(
@@ -46,7 +45,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   static final List<Widget> _screens = [
     DashboardScreen(),
-    QuizScreen(toggleTheme: () {}), // toggleTheme-Callback optional, Provider übernimmt Themewechsel!
+    QuizScreen(), // Kein toggleTheme mehr nötig
     SettingsScreen(),
   ];
 
