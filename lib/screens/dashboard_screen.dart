@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import '../storage/progress_dashboard.dart';
-import '../data/question_categories.dart'; // <--- NEU
+import '../storage/progress_storage.dart';
+import '../data/question_categories.dart';
+import '../data/questions.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,6 +18,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, int> totalByCategory = {};
   bool loading = true;
 
+  int globalLearned = 0;
+  int globalTotal = 0;
+  double globalPercent = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -23,15 +29,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> loadProgress() async {
+    setState(() {
+      loading = true;
+    });
+
     final byCategory = await ProgressDashboard.getLearnedCountByCategory();
-    // Ermittelt die Gesamtzahl pro Kategorie anhand der questionCategories-Map
     final totalPerCat = <String, int>{};
     for (final catKey in categoryKeys) {
       totalPerCat[catKey] = questionCategories[catKey]?.length ?? 0;
     }
+
+    // Globale Fortschrittsberechnung
+    final learnedGlobal = await ProgressStorage.getTotalLearnedCount();
+    final totalGlobal = questions.length;
+    final percentGlobal = totalGlobal == 0 ? 0.0 : learnedGlobal / totalGlobal;
+
     setState(() {
       learnedByCategory = byCategory;
       totalByCategory = totalPerCat;
+      globalLearned = learnedGlobal;
+      globalTotal = totalGlobal;
+      globalPercent = percentGlobal;
       loading = false;
     });
   }
@@ -56,11 +74,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? 2
                 : 1;
 
-    // Gesamter Fortschritt
-    final totalLearned = learnedByCategory.values.fold<int>(0, (a, b) => a + b);
-    final totalQuestions = totalByCategory.values.fold<int>(0, (a, b) => a + b);
-    final overallPercent = totalQuestions == 0 ? 0.0 : totalLearned / totalQuestions;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lernfortschritt"),
@@ -68,12 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: "Aktualisieren",
-            onPressed: () {
-              setState(() {
-                loading = true;
-              });
-              loadProgress();
-            },
+            onPressed: loadProgress,
           ),
         ],
       ),
@@ -81,40 +89,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Gesamtfortschritt – als schicker Kreis
+            // NEU: Globale Fortschrittsanzeige oben
             Center(
-              child: SizedBox(
-                width: 160,
-                height: 160,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: overallPercent,
-                      strokeWidth: 12,
-                      backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.18),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        overallPercent >= 1.0
-                            ? Colors.green
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
+                children: [
+                  Text(
+                    "Globaler Fortschritt",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 160,
+                    height: 160,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        Text(
-                          "${(overallPercent * 100).round()}%",
-                          style: Theme.of(context).textTheme.headlineLarge,
+                        CircularProgressIndicator(
+                          value: globalPercent,
+                          strokeWidth: 12,
+                          backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
+                            alpha: (0.18 * 255).toDouble(),
+                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            globalPercent >= 1.0
+                                ? Colors.green
+                                : Theme.of(context).colorScheme.primary,
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "$totalLearned von $totalQuestions Fragen gelernt",
-                          style: Theme.of(context).textTheme.bodyLarge,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "${(globalPercent * 100).round()}%",
+                              style: Theme.of(context).textTheme.headlineLarge,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "$globalLearned von $globalTotal Fragen gelernt",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -144,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            categoryTitles[catKey] ?? catKey, // NEU: schöner Name
+                            categoryTitles[catKey] ?? catKey,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const Spacer(),
@@ -158,7 +177,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: LinearProgressIndicator(
                               value: percent,
                               minHeight: 12,
-                              backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                              backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
+                                alpha: 0.15 * 255.toDouble(),
+                              ),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 percent >= 1.0
                                     ? Colors.green

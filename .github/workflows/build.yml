@@ -31,11 +31,15 @@ jobs:
       - name: 🔄 Upgrade all packages
         run: flutter pub upgrade
 
-      - name: 📝 Commit updated pubspec.lock and tag if changed
+      - name: 📝 Prepare release tag
+        id: prep_tag
         run: |
           version=$(grep version pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d '+' -f1)
           tag="v$version"
+          echo "tag=$tag" >> $GITHUB_OUTPUT
 
+      - name: 📝 Commit updated pubspec.lock and tag if changed
+        run: |
           if git diff --quiet pubspec.lock; then
             echo "📦 Keine Änderungen an pubspec.lock"
           else
@@ -43,10 +47,10 @@ jobs:
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
             git add pubspec.lock
-            git commit -m "⬆️ Auto-Update pubspec.lock für Release $tag"
-            git tag $tag
+            git commit -m "⬆️ Auto-Update pubspec.lock für Release ${{ steps.prep_tag.outputs.tag }}"
+            git tag ${{ steps.prep_tag.outputs.tag }}
             git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
-            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} $tag
+            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} ${{ steps.prep_tag.outputs.tag }}
           fi
 
       - name: 🏗️ Build Release APK
@@ -55,7 +59,7 @@ jobs:
       - name: 🗂 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.extract_tag.outputs.version }}
+          tag_name: ${{ steps.prep_tag.outputs.tag }}
           files: build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

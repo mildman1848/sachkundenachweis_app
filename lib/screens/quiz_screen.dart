@@ -1,10 +1,11 @@
 // lib/screens/quiz_screen.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../data/questions.dart';
 import '../models/question_model.dart';
 import '../storage/progress_storage.dart';
-import '../data/question_categories.dart'; // <--- für Kategoriename
+import '../data/question_categories.dart';
 
 class QuizScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
@@ -18,10 +19,10 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentIndex = 0;
   Set<int> selectedAnswers = {};
   bool submitted = false;
+  bool loadingNext = false;
 
   Question get currentQuestion => questions[currentIndex];
 
-  /// Holt den Kategorie-Key für die aktuelle Frage (über die questionCategories Map)
   String? get currentCategoryKey {
     for (final entry in questionCategories.entries) {
       if (entry.value.contains(currentQuestion.id)) return entry.key;
@@ -29,7 +30,6 @@ class _QuizScreenState extends State<QuizScreen> {
     return null;
   }
 
-  /// Holt den deutschen Titel zur Kategorie
   String get currentCategoryTitle =>
       categoryTitles[currentCategoryKey] ?? 'Unbekannt';
 
@@ -44,20 +44,46 @@ class _QuizScreenState extends State<QuizScreen> {
     });
   }
 
-  void submitAnswer() async {
+  Future<void> submitAnswer() async {
     setState(() {
       submitted = true;
     });
-    if (isSelectionCorrect()) {
-      await ProgressStorage.incrementCorrect(currentQuestion.id);
-    }
+    // Tracking: aktuelle Antwort speichern (true/falsch)
+    await ProgressStorage.addAnswerResult(
+        currentQuestion.id, isSelectionCorrect());
   }
 
-  void nextQuestion() {
+  // Bestimme nächsten zufälligen Index mit Bevorzugung ungelernter Fragen
+  Future<int> pickNextRandomIndex() async {
+    // Lese Lernstatus für alle Fragen asynchron
+    final isLearnedMap = <int, bool>{};
+    for (final q in questions) {
+      isLearnedMap[q.id] = await ProgressStorage.isLearned(q.id);
+    }
+    // Gewichtete Liste: ungelernte Fragen x3, gelernte x1
+    final weighted = <int>[];
+    for (var i = 0; i < questions.length; i++) {
+      if (isLearnedMap[questions[i].id] == true) {
+        weighted.add(i);
+      } else {
+        weighted.addAll([i, i, i]);
+      }
+    }
+    weighted.removeWhere((i) => i == currentIndex);
+    if (weighted.isEmpty) return currentIndex;
+    return weighted[Random().nextInt(weighted.length)];
+  }
+
+  Future<void> nextQuestion() async {
     setState(() {
-      currentIndex = (currentIndex + 1) % questions.length;
+      loadingNext = true;
+    });
+    final nextIdx = await pickNextRandomIndex();
+    setState(() {
+      currentIndex = nextIdx;
       selectedAnswers.clear();
       submitted = false;
+      loadingNext = false;
     });
   }
 
@@ -126,20 +152,20 @@ class _QuizScreenState extends State<QuizScreen> {
 
                         if (submitted) {
                           if (isCorrect && isSelected) {
-                            tileColor = Colors.green.withOpacity(0.20);
+                            tileColor = Colors.green.withValues(alpha: (0.20 * 255).toDouble());
                             icon = Icons.check_circle;
                             iconColor = Colors.green;
                           } else if (!isCorrect && isSelected) {
-                            tileColor = Colors.red.withOpacity(0.17);
+                            tileColor = Colors.red.withValues(alpha: (0.17 * 255).toDouble());
                             icon = Icons.cancel;
                             iconColor = Colors.red;
                           } else if (isCorrect && !isSelected) {
-                            tileColor = Colors.yellow.withOpacity(0.20);
+                            tileColor = Colors.yellow.withValues(alpha: (0.20 * 255).toDouble());
                             icon = Icons.warning_amber_rounded;
                             iconColor = Colors.orange;
                           }
                         } else if (isSelected) {
-                          tileColor = Theme.of(context).colorScheme.secondary.withOpacity(0.14);
+                          tileColor = Theme.of(context).colorScheme.secondary.withValues(alpha: (0.14 * 255).toDouble());
                         }
 
                         return Card(
@@ -180,19 +206,20 @@ class _QuizScreenState extends State<QuizScreen> {
                           ),
                         )
                       else ...[
-                        // Erklärung entfernt
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.arrow_forward),
-                            label: const Text("Nächste Frage"),
+                            label: loadingNext
+                                ? const Text("Lädt ...")
+                                : const Text("Nächste Frage"),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: nextQuestion,
+                            onPressed: loadingNext ? null : nextQuestion,
                           ),
                         ),
                       ],

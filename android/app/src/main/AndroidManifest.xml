@@ -5,8 +5,7 @@
   Repo: https://github.com/mildman1848/sachkundenachweis_app.git
   Stand: 2025-06
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mildman1848.sachkundenachweis">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Internetzugriff für Updates/Fernkommunikation -->
     <uses-permission android:name="android.permission.INTERNET"/>

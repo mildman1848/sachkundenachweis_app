@@ -22,7 +22,7 @@ class SettingsScreen extends StatelessWidget {
           ...AppThemeMode.values.map((mode) {
             return Card(
               color: themeNotifier.themeMode == mode
-                  ? Theme.of(context).colorScheme.secondary.withOpacity(0.15)
+                  ? Theme.of(context).colorScheme.secondary.withValues(alpha: (0.15 * 255).toDouble())
                   : null,
               child: ListTile(
                 leading: Icon(_iconForTheme(mode)),

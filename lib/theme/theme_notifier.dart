@@ -1,3 +1,5 @@
+// lib/theme/theme_notifier.dart
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,7 +13,6 @@ enum AppThemeMode {
 class ThemeNotifier extends ChangeNotifier {
   AppThemeMode _themeMode = AppThemeMode.system;
 
-  // Getter/Setter für UI, Settings etc.
   AppThemeMode get themeMode => _themeMode;
   set themeMode(AppThemeMode mode) {
     _themeMode = mode;
@@ -19,12 +20,10 @@ class ThemeNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Für MaterialApp (systemabhängig oder hell)
   ThemeMode get materialThemeMode => _themeMode == AppThemeMode.system
       ? ThemeMode.system
       : ThemeMode.light;
 
-  // Für individuelle ThemeData-Nutzung in Widgets
   ThemeData getThemeData(Brightness brightness) {
     switch (_themeMode) {
       case AppThemeMode.calmNature:
@@ -46,7 +45,6 @@ class ThemeNotifier extends ChangeNotifier {
     }
   }
 
-  // Theme-Modus aus dem Speicher laden
   Future<void> loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getInt('theme_mode') ?? 0;
@@ -54,7 +52,6 @@ class ThemeNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Theme-Modus speichern
   Future<void> _saveThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('theme_mode', _themeMode.index);
@@ -72,7 +69,7 @@ class AppThemes {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF388E3C),
       secondary: Color(0xFFA5D6A7),
-      background: Color(0xFFFFF8E1),
+      surface: Color(0xFFFFF8E1), // statt background
     ),
     fontFamily: 'Montserrat',
     appBarTheme: const AppBarTheme(
@@ -98,7 +95,7 @@ class AppThemes {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF66BB6A),
       secondary: Color(0xFFA5D6A7),
-      background: Color(0xFF23272A),
+      surface: Color(0xFF23272A), // statt background
     ),
     fontFamily: 'Montserrat',
     appBarTheme: const AppBarTheme(
@@ -124,7 +121,7 @@ class AppThemes {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF00B8D4),
       secondary: Color(0xFFFFB300),
-      background: Colors.white,
+      surface: Colors.white, // statt background
       tertiary: Color(0xFFD1C4E9),
     ),
     fontFamily: 'Inter',
@@ -151,7 +148,7 @@ class AppThemes {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF00B8D4),
       secondary: Color(0xFFFFB300),
-      background: Color(0xFF23272A),
+      surface: Color(0xFF23272A), // statt background
       tertiary: Color(0xFFD1C4E9),
     ),
     fontFamily: 'Inter',
@@ -178,7 +175,7 @@ class AppThemes {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF23272A),
       secondary: Color(0xFF1ABC9C),
-      background: Color(0xFFF5F6FA),
+      surface: Color(0xFFF5F6FA), // statt background
       tertiary: Color(0xFF00E676),
       error: Color(0xFFFFD600),
     ),
@@ -206,7 +203,7 @@ class AppThemes {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF1ABC9C),
       secondary: Color(0xFF00E676),
-      background: Color(0xFF181A20),
+      surface: Color(0xFF181A20), // statt background
       tertiary: Color(0xFFFFD600),
       error: Color(0xFFFFD600),
     ),

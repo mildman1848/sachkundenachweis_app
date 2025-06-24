@@ -51,7 +51,7 @@ class QuestionCard extends StatelessWidget {
             tileColor = feedbackColor!(index);
           } else if (isSelected && !submitted) {
             // Nutze Theme Secondary für Auswahl
-            tileColor = Theme.of(context).colorScheme.secondary.withOpacity(0.13);
+            tileColor = Theme.of(context).colorScheme.secondary.withValues(alpha: (0.13 * 255).toDouble());
           }
 
           return Card(
