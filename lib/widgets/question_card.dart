@@ -1,3 +1,5 @@
+// lib/widgets/question_card.dart
+
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
 
@@ -25,23 +27,23 @@ class QuestionCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          question.questionText,
+          question.question,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 16),
-        if (question.imageAsset != null)
+        if (question.image != null)
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: Image.asset(
-                question.imageAsset!,
+                question.image!,
                 height: 200,
                 fit: BoxFit.contain,
               ),
             ),
           ),
         const SizedBox(height: 16),
-        ...List.generate(question.options.length, (index) {
+        ...List.generate(question.answers.length, (index) {
           final isSelected = selectedAnswers.contains(index);
 
           Color? tileColor;
@@ -66,7 +68,7 @@ class QuestionCard extends StatelessWidget {
                 activeColor: Theme.of(context).colorScheme.primary,
               ),
               title: Text(
-                question.options[index],
+                question.answers[index],
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               trailing: feedbackIcon != null ? Icon(feedbackIcon!(index)) : null,

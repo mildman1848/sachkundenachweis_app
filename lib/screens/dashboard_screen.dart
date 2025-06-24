@@ -1,6 +1,8 @@
+// lib/screens/dashboard_screen.dart
+
 import 'package:flutter/material.dart';
 import '../storage/progress_dashboard.dart';
-import '../data/questions.dart';
+import '../data/question_categories.dart'; // <--- NEU
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,9 +24,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> loadProgress() async {
     final byCategory = await ProgressDashboard.getLearnedCountByCategory();
+    // Ermittelt die Gesamtzahl pro Kategorie anhand der questionCategories-Map
     final totalPerCat = <String, int>{};
-    for (var q in questions) {
-      totalPerCat[q.category] = (totalPerCat[q.category] ?? 0) + 1;
+    for (final catKey in categoryKeys) {
+      totalPerCat[catKey] = questionCategories[catKey]?.length ?? 0;
     }
     setState(() {
       learnedByCategory = byCategory;
@@ -41,7 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    final categories = totalByCategory.keys.toList();
+    final categories = categoryKeys;
 
     // Responsive Spaltenanzahl
     final screenWidth = MediaQuery.of(context).size.width;
@@ -92,8 +95,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.18),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         overallPercent >= 1.0
-                          ? Colors.green
-                          : Theme.of(context).colorScheme.primary,
+                            ? Colors.green
+                            : Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     Column(
@@ -125,9 +128,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
-                  final cat = categories[index];
-                  final learned = learnedByCategory[cat] ?? 0;
-                  final total = totalByCategory[cat]!;
+                  final catKey = categories[index];
+                  final learned = learnedByCategory[catKey] ?? 0;
+                  final total = totalByCategory[catKey]!;
                   final percent = (learned / total).clamp(0.0, 1.0);
 
                   return Card(
@@ -141,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            cat,
+                            categoryTitles[catKey] ?? catKey, // NEU: schöner Name
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const Spacer(),
@@ -158,8 +161,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 percent >= 1.0
-                                  ? Colors.green
-                                  : Theme.of(context).colorScheme.secondary,
+                                    ? Colors.green
+                                    : Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),

@@ -7,17 +7,15 @@ void main() {
   test('Question model initializes correctly', () {
     final question = Question(
       id: 1,
-      category: 'Test',
-      questionText: 'Wie viele Beine hat ein Hund?',
-      options: ['Zwei', 'Drei', 'Vier', 'Fünf'],
-      correctOptionIndexes: [2],
-      explanation: 'Vier ist korrekt.',
-      imageAsset: 'assets/images/skizze_1.webp',
+      question: 'Wie viele Beine hat ein Hund?',
+      answers: ['Zwei', 'Drei', 'Vier', 'Fünf'],
+      correctAnswers: [2],
+      image: 'assets/images/skizzen/1.png',
     );
     expect(question.id, 1);
-    expect(question.options[2], 'Vier');
-    expect(question.correctOptionIndexes, [2]);
-    expect(question.explanation, isA<String>());
-    expect(question.imageAsset, isNotNull);
+    expect(question.question, 'Wie viele Beine hat ein Hund?');
+    expect(question.answers[2], 'Vier');
+    expect(question.correctAnswers, [2]);
+    expect(question.image, isNotNull);
   });
 }

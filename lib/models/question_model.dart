@@ -1,19 +1,17 @@
+// lib/models/question_model.dart
+
 class Question {
   final int id;
-  final String category;
-  final String questionText;
-  final List<String> options;
-  final List<int> correctOptionIndexes;
-  final String explanation;
-  final String? imageAsset;
+  final String question;
+  final List<String> answers;
+  final List<int> correctAnswers;
+  final String? image;
 
-  Question({
+  const Question({
     required this.id,
-    required this.category,
-    required this.questionText,
-    required this.options,
-    required this.correctOptionIndexes,
-    required this.explanation,
-    this.imageAsset,
+    required this.question,
+    required this.answers,
+    required this.correctAnswers,
+    this.image,
   });
 }

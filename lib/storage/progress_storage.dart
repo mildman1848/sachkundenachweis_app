@@ -1,3 +1,5 @@
+// lib/storage/progress_storage.dart
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProgressStorage {
@@ -20,6 +22,14 @@ class ProgressStorage {
   static Future<void> resetProgress(int questionId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('$_prefix${questionId}_correct');
+  }
+
+  /// Setzt den Fortschritt für alle Fragen zurück.
+  static Future<void> resetAllProgress(Iterable<int> questionIds) async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final id in questionIds) {
+      await prefs.remove('$_prefix${id}_correct');
+    }
   }
 
   /// Gibt zurück, ob eine Frage gelernt ist (≥ [threshold] mal korrekt).

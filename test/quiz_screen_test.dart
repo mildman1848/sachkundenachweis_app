@@ -13,11 +13,11 @@ void main() {
     ));
 
     // Prüfe, ob der Fragetext der ersten Frage angezeigt wird
-    expect(find.text(questions[0].questionText), findsOneWidget);
+    expect(find.text(questions[0].question), findsOneWidget);
 
-    // (Optional) Prüfe, ob Antwortoptionen angezeigt werden
-    for (final option in questions[0].options) {
-      expect(find.text(option), findsOneWidget);
+    // Prüfe, ob Antwortoptionen angezeigt werden
+    for (final answer in questions[0].answers) {
+      expect(find.text(answer), findsOneWidget);
     }
   });
 }

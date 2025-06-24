@@ -1,51 +1,56 @@
 # 🐶 Sachkundenachweis NRW – Lernapp
 
-Eine moderne, kostenlose Android-App zur Vorbereitung auf die Sachkundeprüfung gemäß §11 Abs. 3 LHundG NRW.
+**Die moderne, kostenlose Android-App zur Vorbereitung auf die Sachkundeprüfung nach §11 Abs. 3 LHundG NRW**
 
-> Diese App richtet sich an Hundehalterinnen und Hundehalter in Nordrhein-Westfalen, die den Sachkundenachweis bei einer anerkannten Tierärztin / einem anerkannten Tierarzt ablegen möchten.
+> Für alle Hundehalter:innen in Nordrhein-Westfalen, die den Sachkundenachweis bei anerkannten Tierärzt:innen ablegen möchten.
 
 ---
 
-## 📱 Funktionen
+## 📱 Features
 
-- ✅ Enthält alle **197 offiziellen Prüfungsfragen**
-- 🧠 Fragen müssen **mindestens 3× korrekt beantwortet** werden, um als vorbereitet zu gelten
-- ❌ Fehlerhafte Antworten werden **bevorzugt erneut gestellt**
-- 🧾 Erklärungen bei falschen Antworten
-- 📊 **Dashboard** mit Fortschritt **pro Kategorie**
-- 🌙 Automatischer und manueller **Darkmode**
-- 💾 Fortschritt wird **lokal gespeichert**
-- 🖼️ Fragen mit Bildern werden inkl. **Skizzen (WebP)** angezeigt
-- 📍 Verzeichnis prüfender Tierärzt:innen nach Bestehen sichtbar
+- ✅ **Alle 197 offiziellen Prüfungsfragen** (neue Fassung ab 2025)
+- 🧠 **Adaptives Lernen**: Jede Frage muss 3× korrekt beantwortet werden
+- 🔄 **Fehlerorientiertes Üben**: Falsche Antworten werden bevorzugt wiederholt
+- 🧾 **Erklärungen** bei jeder falschen Antwort
+- 📊 **Dashboard**: Fortschritt für jede Kategorie sichtbar
+- 🎨 **Multi-Theme-Unterstützung**: Drei Designs (Calm Nature, Bright Minimal, Dark Elegant), jeweils mit Light & Dark Mode
+- 🌙 **Automatischer und manueller Darkmode** (systemgesteuert oder per App wählbar)
+- 💾 **Lokale Speicherung** deines Lernfortschritts (keine Cloud, keine Registrierung)
+- 🖼️ **Bilder & Skizzen** zu ausgewählten Fragen (optimiert als WebP)
+- 📍 **Verzeichnis prüfender Tierärzt:innen** nach Bestehen der Prüfung sichtbar
+- 📐 **100 % Responsive** – läuft auf Smartphone, Tablet und Desktop (Flutter)
 
 ---
 
 ## 🔧 Technik
 
-- 📦 Entwickelt mit [Flutter](https://flutter.dev)
-- 🎯 Lokale Speicherung mit `shared_preferences`
-- 📈 Fortschrittsanzeigen mit `fl_chart`
-- 🛠️ Automatischer **APK-Build & GitHub Release** per GitHub Actions
-- 📜 Lizenz: **GNU General Public License v3.0**
+- 📦 [Flutter](https://flutter.dev) (ab 3.x)
+- 📚 State Management mit [`provider`](https://pub.dev/packages/provider)
+- 💾 Speicherung: [`shared_preferences`](https://pub.dev/packages/shared_preferences)
+- 📈 Fortschritt: [`fl_chart`](https://pub.dev/packages/fl_chart)
+- 🤖 **Automatischer APK-Build & GitHub Release** (via Actions)
+- 📜 **Lizenz:** GNU GPLv3
 
 ---
 
 ## 🚀 Installation (lokal)
 
 ```bash
-git clone https://github.com/Mildman1848/sachkundenachweis_flutter.git
+git clone https://github.com/Mildman1848/sachkundenachweis_app.git
 cd sachkundenachweis_flutter
 flutter pub get
 flutter run
 ```
 
+> Für den APK-Release: siehe GitHub Releases auf der Projektseite.
+
 ---
 
-## 🏗️ GitHub Actions Build
+## 🏗️ CI/CD (GitHub Actions)
 
-- `main`-Branch Push → löst automatisch Build & Release aus
-- Änderungen an `pubspec.lock` werden automatisch erkannt, committet & getaggt
-- `CHANGELOG.md` wird ins Release übernommen
+- Jeder Push auf den `main`-Branch baut automatisch eine neue APK und veröffentlicht sie im Release-Bereich
+- Abhängigkeiten (`pubspec.lock`) und Changelog werden automatisch aktualisiert
+- Release-Notizen: aus `CHANGELOG.md`
 
 ---
 
@@ -54,16 +59,21 @@ flutter run
 ```
 lib/
 ├── main.dart
-├── model/
+├── models/
 │   └── question_model.dart
 ├── screens/
 │   ├── dashboard_screen.dart
-│   └── quiz_screen.dart
+│   ├── quiz_screen.dart
+│   └── settings_screen.dart
 ├── widgets/
-│   ├── question_card.dart
-│   └── progress_dashboard.dart
+│   └── question_card.dart
+├── storage/
+│   ├── progress_dashboard.dart
+│   └── progress_storage.dart
 ├── data/
 │   └── questions.dart
+├── theme/
+│   └── theme_notifier.dart
 assets/
 └── images/
 .github/
@@ -73,19 +83,20 @@ assets/
 
 ---
 
-## ❤️ Mitwirken
+## ❤️ Mitmachen
 
-Fehler gefunden oder Verbesserungsvorschlag?  
-Erstelle gerne ein Issue oder Pull Request!
+Du hast Fehler gefunden oder Ideen für neue Features?  
+**Starte ein [Issue](https://github.com/Mildman1848/sachkundenachweis_app/issues)**  
+oder reiche einen **Pull Request** ein – wir freuen uns auf deinen Beitrag!
 
 ---
 
 ## 📘 Quelle
 
-Alle Fragen basieren auf dem offiziellen PDF der [Tierärztekammer Nordrhein](https://www.tieraerztekammer-nordrhein.de/tierhalter/sachkundebescheinigung-lhundg/).
+Alle Fragen basieren auf dem offiziellen Fragenkatalog der [Tierärztekammer Nordrhein](https://www.tieraerztekammer-nordrhein.de/tierhalter/sachkundebescheinigung-lhundg/).
 
 ---
 
 ## © Lizenz
 
-> Dieses Projekt steht unter der [GNU GPLv3](LICENSE).
+Dieses Projekt steht unter der [GNU GPLv3](LICENSE).

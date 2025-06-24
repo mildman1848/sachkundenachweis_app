@@ -1,7 +1,10 @@
+// lib/screens/quiz_screen.dart
+
 import 'package:flutter/material.dart';
 import '../data/questions.dart';
 import '../models/question_model.dart';
 import '../storage/progress_storage.dart';
+import '../data/question_categories.dart'; // <--- für Kategoriename
 
 class QuizScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
@@ -17,6 +20,18 @@ class _QuizScreenState extends State<QuizScreen> {
   bool submitted = false;
 
   Question get currentQuestion => questions[currentIndex];
+
+  /// Holt den Kategorie-Key für die aktuelle Frage (über die questionCategories Map)
+  String? get currentCategoryKey {
+    for (final entry in questionCategories.entries) {
+      if (entry.value.contains(currentQuestion.id)) return entry.key;
+    }
+    return null;
+  }
+
+  /// Holt den deutschen Titel zur Kategorie
+  String get currentCategoryTitle =>
+      categoryTitles[currentCategoryKey] ?? 'Unbekannt';
 
   void toggleAnswer(int index) {
     if (submitted) return;
@@ -47,12 +62,12 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   bool isCorrectAnswer(int index) {
-    return currentQuestion.correctOptionIndexes.contains(index);
+    return currentQuestion.correctAnswers.contains(index);
   }
 
   bool isSelectionCorrect() {
-    return Set.from(currentQuestion.correctOptionIndexes).containsAll(selectedAnswers) &&
-           selectedAnswers.containsAll(currentQuestion.correctOptionIndexes);
+    return Set.from(currentQuestion.correctAnswers).containsAll(selectedAnswers) &&
+        selectedAnswers.containsAll(currentQuestion.correctAnswers);
   }
 
   @override
@@ -61,7 +76,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Kategorie: ${q.category}"),
+        title: Text("Kategorie: $currentCategoryTitle"),
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
@@ -85,23 +100,23 @@ class _QuizScreenState extends State<QuizScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        q.questionText,
+                        q.question,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 18),
-                      if (q.imageAsset != null)
+                      if (q.image != null)
                         Center(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: Image.asset(
-                              q.imageAsset!,
+                              q.image!,
                               height: isWide ? 260 : 200,
                               fit: BoxFit.contain,
                             ),
                           ),
                         ),
                       const SizedBox(height: 18),
-                      ...List.generate(q.options.length, (index) {
+                      ...List.generate(q.answers.length, (index) {
                         final isSelected = selectedAnswers.contains(index);
                         final isCorrect = isCorrectAnswer(index);
 
@@ -141,7 +156,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               activeColor: Theme.of(context).colorScheme.primary,
                             ),
                             title: Text(
-                              q.options[index],
+                              q.answers[index],
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             trailing: icon != null ? Icon(icon, color: iconColor) : null,
@@ -165,17 +180,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           ),
                         )
                       else ...[
-                        if (!isSelectionCorrect())
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(
-                              "Erklärung: ${q.explanation}",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
+                        // Erklärung entfernt
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(

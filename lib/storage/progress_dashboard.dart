@@ -1,5 +1,16 @@
+// lib/storage/progress_dashboard.dart
+
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/questions.dart';
+import '../data/question_categories.dart';
+
+// Hilfsfunktion: Ermittle Kategorie-Key für eine Frage-ID
+String? getCategoryKeyForQuestion(int questionId) {
+  for (final entry in questionCategories.entries) {
+    if (entry.value.contains(questionId)) return entry.key;
+  }
+  return null;
+}
 
 class ProgressDashboard {
   static const String _prefix = 'question_';
@@ -12,7 +23,10 @@ class ProgressDashboard {
     for (final q in questions) {
       final correct = prefs.getInt('$_prefix${q.id}_correct') ?? 0;
       if (correct >= threshold) {
-        categoryCounts[q.category] = (categoryCounts[q.category] ?? 0) + 1;
+        final catKey = getCategoryKeyForQuestion(q.id);
+        if (catKey != null) {
+          categoryCounts[catKey] = (categoryCounts[catKey] ?? 0) + 1;
+        }
       }
     }
     return categoryCounts;

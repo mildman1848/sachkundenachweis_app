@@ -26,15 +26,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/icon.png"
 
 flutter:
   uses-material-design: true
 
-  # Bilder/Assets
   assets:
     - assets/images/
 
-  # Fonts für Themes (empfohlen, falls nicht schon in assets!)
   fonts:
     - family: Montserrat
       fonts:
