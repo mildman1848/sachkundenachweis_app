@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'theme/theme_notifier.dart';
 import 'screens/dashboard_screen.dart';
@@ -9,6 +10,10 @@ import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Android: immersive Sticky Vollbild
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   final themeNotifier = ThemeNotifier();
   await themeNotifier.loadThemeMode();
   runApp(
@@ -67,7 +72,6 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _quizLoading = true;
     });
-    // Kein Shuffling mehr hier nötig! QuizScreen erledigt das selbst.
     setState(() {
       _currentQuizScreen = const QuizScreen();
       _quizLoading = false;
@@ -93,7 +97,6 @@ class _MainNavigationState extends State<MainNavigation> {
       } else if (_currentQuizScreen != null) {
         content = _currentQuizScreen!;
       } else {
-        // Wenn noch nie geöffnet: Lade QuizScreen
         _loadQuizScreen();
         content = const Scaffold(
           body: Center(child: CircularProgressIndicator()),
@@ -109,7 +112,6 @@ class _MainNavigationState extends State<MainNavigation> {
         currentIndex: _selectedIndex,
         onTap: (idx) async {
           if (idx == 1) {
-            // QuizTab: immer neu laden!
             await _loadQuizScreen();
             setState(() {
               _selectedIndex = idx;
