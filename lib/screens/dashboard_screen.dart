@@ -5,6 +5,7 @@ import '../storage/progress_dashboard.dart';
 import '../storage/progress_storage.dart';
 import '../data/question_categories.dart';
 import '../data/questions.dart';
+import 'category_detail_screen.dart'; // <--- NEU
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -35,7 +36,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     super.dispose();
   }
 
-  // Jedes Mal, wenn das Dashboard erneut sichtbar wird (z.B. nach Quiz oder App-Switch)
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -43,7 +43,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     }
   }
 
-  // Noch besser: Auch bei "Dependencies changed" neu laden (bei Page-Wechsel in BottomNav)
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -184,40 +183,56 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            categoryTitles[catKey] ?? catKey,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const Spacer(),
-                          Text(
-                            "$learned von $total gelernt",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(7),
-                            child: LinearProgressIndicator(
-                              value: percent,
-                              minHeight: 12,
-                              backgroundColor: secondary.withValues(
-                                alpha: 0.15 * 255.0,
-                                red: secondary.r * 255.0,
-                                green: secondary.g * 255.0,
-                                blue: secondary.b * 255.0,
-                              ),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                percent >= 1.0
-                                    ? Colors.green
-                                    : Theme.of(context).colorScheme.secondary,
-                              ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () {
+                        final ids = questionCategories[catKey] ?? [];
+                        final title = categoryTitles[catKey] ?? catKey;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CategoryDetailScreen(
+                              categoryKey: catKey,
+                              categoryTitle: title,
+                              questionIds: ids,
                             ),
                           ),
-                        ],
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              categoryTitles[catKey] ?? catKey,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            Text(
+                              "$learned von $total gelernt",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: LinearProgressIndicator(
+                                value: percent,
+                                minHeight: 12,
+                                backgroundColor: secondary.withValues(
+                                  alpha: 0.15 * 255.0,
+                                  red: secondary.r * 255.0,
+                                  green: secondary.g * 255.0,
+                                  blue: secondary.b * 255.0,
+                                ),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  percent >= 1.0
+                                      ? Colors.green
+                                      : Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
