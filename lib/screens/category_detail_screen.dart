@@ -75,18 +75,31 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     }
   }
 
+  void popWithRefresh() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(refreshRequested);
+    } else {
+      Navigator.of(context).maybePop(refreshRequested);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          Navigator.of(context).pop(refreshRequested);
+          popWithRefresh();
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text('Kategorie: ${widget.categoryTitle}'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: popWithRefresh,
+            tooltip: "Zurück",
+          ),
         ),
         body: FutureBuilder<List<_QuestionDetail>>(
           future: _futureDetails,
