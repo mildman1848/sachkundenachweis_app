@@ -81,7 +81,11 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
   }
 
   void popWithRefresh() {
-    Navigator.of(context).pop(true);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(true);
+    } else {
+      Navigator.of(context).maybePop(true);
+    }
   }
 
   @override
@@ -141,6 +145,7 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             LinearProgressIndicator(
               value: (currentIdx + 1) / widget.questionIds.length,
@@ -153,96 +158,94 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
+            Text(
+              q.question,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (q.image != null) ...[
+              const SizedBox(height: 8),
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.asset(
+                    q.image!,
+                    height: 160,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      q.question,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    if (q.image != null)
-                      Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Image.asset(
-                            q.image!,
-                            height: 160,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    ...List.generate(q.answers.length, (index) {
-                      final isSelected = selectedAnswers.contains(index);
-                      final isCorrect = isCorrectAnswer(index);
+                  children: List.generate(q.answers.length, (index) {
+                    final isSelected = selectedAnswers.contains(index);
+                    final isCorrect = isCorrectAnswer(index);
 
-                      Color? tileColor;
-                      IconData? icon;
-                      Color? iconColor;
+                    Color? tileColor;
+                    IconData? icon;
+                    Color? iconColor;
 
-                      if (submitted) {
-                        if (isCorrect && isSelected) {
-                          tileColor = Colors.green.withValues(
-                            alpha: 0.20 * 255.0,
-                            red: Colors.green.r * 255.0,
-                            green: Colors.green.g * 255.0,
-                            blue: Colors.green.b * 255.0,
-                          );
-                          icon = Icons.check_circle;
-                          iconColor = Colors.green;
-                        } else if (!isCorrect && isSelected) {
-                          tileColor = Colors.red.withValues(
-                            alpha: 0.17 * 255.0,
-                            red: Colors.red.r * 255.0,
-                            green: Colors.red.g * 255.0,
-                            blue: Colors.red.b * 255.0,
-                          );
-                          icon = Icons.cancel;
-                          iconColor = Colors.red;
-                        } else if (isCorrect && !isSelected) {
-                          tileColor = Colors.yellow.withValues(
-                            alpha: 0.20 * 255.0,
-                            red: Colors.yellow.r * 255.0,
-                            green: Colors.yellow.g * 255.0,
-                            blue: Colors.yellow.b * 255.0,
-                          );
-                          icon = Icons.warning_amber_rounded;
-                          iconColor = Colors.orange;
-                        }
-                      } else if (isSelected) {
-                        tileColor = secondary.withValues(
-                          alpha: 0.14 * 255.0,
-                          red: secondary.r * 255.0,
-                          green: secondary.g * 255.0,
-                          blue: secondary.b * 255.0,
+                    if (submitted) {
+                      if (isCorrect && isSelected) {
+                        tileColor = Colors.green.withValues(
+                          alpha: 0.20 * 255.0,
+                          red: Colors.green.r * 255.0,
+                          green: Colors.green.g * 255.0,
+                          blue: Colors.green.b * 255.0,
                         );
+                        icon = Icons.check_circle;
+                        iconColor = Colors.green;
+                      } else if (!isCorrect && isSelected) {
+                        tileColor = Colors.red.withValues(
+                          alpha: 0.17 * 255.0,
+                          red: Colors.red.r * 255.0,
+                          green: Colors.red.g * 255.0,
+                          blue: Colors.red.b * 255.0,
+                        );
+                        icon = Icons.cancel;
+                        iconColor = Colors.red;
+                      } else if (isCorrect && !isSelected) {
+                        tileColor = Colors.yellow.withValues(
+                          alpha: 0.20 * 255.0,
+                          red: Colors.yellow.r * 255.0,
+                          green: Colors.yellow.g * 255.0,
+                          blue: Colors.yellow.b * 255.0,
+                        );
+                        icon = Icons.warning_amber_rounded;
+                        iconColor = Colors.orange;
                       }
-
-                      return Card(
-                        elevation: 2,
-                        color: tileColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: ListTile(
-                          onTap: () => toggleAnswer(index),
-                          leading: Checkbox(
-                            value: isSelected,
-                            onChanged: (_) => toggleAnswer(index),
-                            activeColor: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(
-                            q.answers[index],
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          trailing: icon != null ? Icon(icon, color: iconColor) : null,
-                        ),
+                    } else if (isSelected) {
+                      tileColor = secondary.withValues(
+                        alpha: 0.14 * 255.0,
+                        red: secondary.r * 255.0,
+                        green: secondary.g * 255.0,
+                        blue: secondary.b * 255.0,
                       );
-                    }),
-                  ],
+                    }
+
+                    return Card(
+                      elevation: 2,
+                      color: tileColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: ListTile(
+                        onTap: () => toggleAnswer(index),
+                        leading: Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => toggleAnswer(index),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                        ),
+                        title: Text(
+                          q.answers[index],
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        trailing: icon != null ? Icon(icon, color: iconColor) : null,
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),
