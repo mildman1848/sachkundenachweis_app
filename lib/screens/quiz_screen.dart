@@ -17,12 +17,13 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int currentIndex = 0;
+  List<int>? order;
+  int currentOrderIndex = 0;
   Set<int> selectedAnswers = {};
   bool submitted = false;
   bool loadingNext = false;
 
-  Question get currentQuestion => questions[currentIndex];
+  Question get currentQuestion => questions[order![currentOrderIndex]];
 
   String? get currentCategoryKey {
     for (final entry in questionCategories.entries) {
@@ -33,6 +34,45 @@ class _QuizScreenState extends State<QuizScreen> {
 
   String get currentCategoryTitle =>
       categoryTitles[currentCategoryKey] ?? 'Unbekannt';
+
+  @override
+  void initState() {
+    super.initState();
+    _initOrder();
+  }
+
+  Future<void> _initOrder() async {
+    final shuffled = await buildPrioritizedShuffledOrder();
+    setState(() {
+      order = shuffled;
+      currentOrderIndex = 0;
+      selectedAnswers.clear();
+      submitted = false;
+      loadingNext = false;
+    });
+  }
+
+  Future<List<int>> buildPrioritizedShuffledOrder() async {
+    final isLearnedMap = <int, bool>{};
+    for (final q in questions) {
+      isLearnedMap[q.id] = await ProgressStorage.isLearned(q.id);
+    }
+    final weighted = <int>[];
+    for (var i = 0; i < questions.length; i++) {
+      if (isLearnedMap[questions[i].id] == true) {
+        weighted.add(i);
+      } else {
+        weighted.addAll([i, i, i]);
+      }
+    }
+    weighted.shuffle(Random());
+    final seen = <int>{};
+    final ordered = <int>[];
+    for (final i in weighted) {
+      if (seen.add(i)) ordered.add(i);
+    }
+    return ordered;
+  }
 
   void toggleAnswer(int index) {
     if (submitted) return;
@@ -53,35 +93,22 @@ class _QuizScreenState extends State<QuizScreen> {
         currentQuestion.id, isSelectionCorrect());
   }
 
-  Future<int> pickNextRandomIndex() async {
-    final isLearnedMap = <int, bool>{};
-    for (final q in questions) {
-      isLearnedMap[q.id] = await ProgressStorage.isLearned(q.id);
-    }
-    final weighted = <int>[];
-    for (var i = 0; i < questions.length; i++) {
-      if (isLearnedMap[questions[i].id] == true) {
-        weighted.add(i);
-      } else {
-        weighted.addAll([i, i, i]);
-      }
-    }
-    weighted.removeWhere((i) => i == currentIndex);
-    if (weighted.isEmpty) return currentIndex;
-    return weighted[Random().nextInt(weighted.length)];
-  }
-
   Future<void> nextQuestion() async {
     setState(() {
       loadingNext = true;
     });
-    final nextIdx = await pickNextRandomIndex();
-    setState(() {
-      currentIndex = nextIdx;
-      selectedAnswers.clear();
-      submitted = false;
-      loadingNext = false;
-    });
+
+    if (currentOrderIndex < order!.length - 1) {
+      setState(() {
+        currentOrderIndex++;
+        selectedAnswers.clear();
+        submitted = false;
+        loadingNext = false;
+      });
+    } else {
+      // Quiz komplett durchlaufen – neu mischen & von vorne beginnen
+      await _initOrder();
+    }
   }
 
   bool isCorrectAnswer(int index) {
@@ -103,6 +130,12 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (order == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final q = currentQuestion;
     final Color secondary = Theme.of(context).colorScheme.secondary;
 
@@ -238,7 +271,9 @@ class _QuizScreenState extends State<QuizScreen> {
                             icon: const Icon(Icons.arrow_forward),
                             label: loadingNext
                                 ? const Text("Lädt ...")
-                                : const Text("Nächste Frage"),
+                                : (currentOrderIndex < order!.length - 1
+                                    ? const Text("Nächste Frage")
+                                    : const Text("Neu mischen und von vorne")),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(

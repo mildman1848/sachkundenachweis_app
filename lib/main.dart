@@ -33,15 +33,12 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.calmNatureDark,
       themeMode: themeNotifier.materialThemeMode,
       home: const MainNavigation(),
-      // --- HIER: Theme dynamisch ersetzen ---
       builder: (context, child) {
-        // Die aktuell gewünschte Brightness
         final brightness = MediaQuery.platformBrightnessOf(context);
-        // Das Theme passend zur Theme-Auswahl aus dem Notifier holen
         final themeData = themeNotifier.getThemeData(
           themeNotifier.themeMode == AppThemeMode.system
-              ? brightness // Im Systemmodus: Systemhelligkeit
-              : Brightness.light, // Bei Custom Themes immer light/dark wie gewählt
+              ? brightness
+              : Brightness.light,
         );
         return Theme(
           data: themeData,
@@ -60,19 +57,69 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  static final List<Widget> _screens = [
-    DashboardScreen(),
-    QuizScreen(),
-    SettingsScreen(),
-  ];
+  final _dashboard = const DashboardScreen();
+  final _settings = const SettingsScreen();
+
+  Widget? _currentQuizScreen;
+  bool _quizLoading = false;
+
+  Future<void> _loadQuizScreen() async {
+    setState(() {
+      _quizLoading = true;
+    });
+    // Kein Shuffling mehr hier nötig! QuizScreen erledigt das selbst.
+    setState(() {
+      _currentQuizScreen = const QuizScreen();
+      _quizLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentQuizScreen = null;
+  }
 
   @override
   Widget build(BuildContext context) {
+    Widget content;
+    if (_selectedIndex == 0) {
+      content = _dashboard;
+    } else if (_selectedIndex == 1) {
+      if (_quizLoading) {
+        content = const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      } else if (_currentQuizScreen != null) {
+        content = _currentQuizScreen!;
+      } else {
+        // Wenn noch nie geöffnet: Lade QuizScreen
+        _loadQuizScreen();
+        content = const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+    } else {
+      content = _settings;
+    }
+
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: content,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (idx) => setState(() => _selectedIndex = idx),
+        onTap: (idx) async {
+          if (idx == 1) {
+            // QuizTab: immer neu laden!
+            await _loadQuizScreen();
+            setState(() {
+              _selectedIndex = idx;
+            });
+          } else {
+            setState(() {
+              _selectedIndex = idx;
+            });
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.quiz), label: 'Quiz'),

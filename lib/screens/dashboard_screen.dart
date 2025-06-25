@@ -13,7 +13,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   Map<String, int> learnedByCategory = {};
   Map<String, int> totalByCategory = {};
   bool loading = true;
@@ -25,6 +25,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    loadProgress();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Jedes Mal, wenn das Dashboard erneut sichtbar wird (z.B. nach Quiz oder App-Switch)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      loadProgress();
+    }
+  }
+
+  // Noch besser: Auch bei "Dependencies changed" neu laden (bei Page-Wechsel in BottomNav)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     loadProgress();
   }
 
