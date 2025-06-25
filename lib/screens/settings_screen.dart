@@ -1,3 +1,5 @@
+// lib/screens/settings_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/theme_notifier.dart';
@@ -20,14 +22,23 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...AppThemeMode.values.map((mode) {
+            final isSelected = themeNotifier.themeMode == mode;
+            final Color base = Theme.of(context).colorScheme.secondary;
+            // --- Korrektes Handling für neue Flutter-Versionen:
+            final Color? highlight = isSelected
+                ? base.withValues(
+                    alpha: 0.15 * 255.0,
+                    red: base.r * 255.0,
+                    green: base.g * 255.0,
+                    blue: base.b * 255.0,
+                  )
+                : null;
             return Card(
-              color: themeNotifier.themeMode == mode
-                  ? Theme.of(context).colorScheme.secondary.withValues(alpha: (0.15 * 255).toDouble())
-                  : null,
+              color: highlight,
               child: ListTile(
                 leading: Icon(_iconForTheme(mode)),
                 title: Text(_themeName(mode)),
-                trailing: themeNotifier.themeMode == mode
+                trailing: isSelected
                     ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.secondary)
                     : null,
                 onTap: () => themeNotifier.themeMode = mode,

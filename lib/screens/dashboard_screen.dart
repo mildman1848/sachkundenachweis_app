@@ -74,6 +74,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? 2
                 : 1;
 
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lernfortschritt"),
@@ -89,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // NEU: Globale Fortschrittsanzeige oben
+            // Globale Fortschrittsanzeige oben
             Center(
               child: Column(
                 children: [
@@ -107,8 +109,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         CircularProgressIndicator(
                           value: globalPercent,
                           strokeWidth: 12,
-                          backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
-                            alpha: (0.18 * 255).toDouble(),
+                          backgroundColor: secondary.withValues(
+                            alpha: 0.18 * 255.0,
+                            red: secondary.r * 255.0,
+                            green: secondary.g * 255.0,
+                            blue: secondary.b * 255.0,
                           ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             globalPercent >= 1.0
@@ -177,8 +182,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: LinearProgressIndicator(
                               value: percent,
                               minHeight: 12,
-                              backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
-                                alpha: 0.15 * 255.toDouble(),
+                              backgroundColor: secondary.withValues(
+                                alpha: 0.15 * 255.0,
+                                red: secondary.r * 255.0,
+                                green: secondary.g * 255.0,
+                                blue: secondary.b * 255.0,
                               ),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 percent >= 1.0

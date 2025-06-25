@@ -23,6 +23,7 @@ class QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color secondary = Theme.of(context).colorScheme.secondary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,8 +51,13 @@ class QuestionCard extends StatelessWidget {
           if (feedbackColor != null) {
             tileColor = feedbackColor!(index);
           } else if (isSelected && !submitted) {
-            // Nutze Theme Secondary für Auswahl
-            tileColor = Theme.of(context).colorScheme.secondary.withValues(alpha: (0.13 * 255).toDouble());
+            // Nutze Theme Secondary für Auswahl – Flutter 3.22+ kompatibel
+            tileColor = secondary.withValues(
+              alpha: 0.13 * 255.0,
+              red: secondary.r * 255.0,
+              green: secondary.g * 255.0,
+              blue: secondary.b * 255.0,
+            );
           }
 
           return Card(

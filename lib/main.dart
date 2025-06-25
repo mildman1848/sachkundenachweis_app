@@ -1,3 +1,5 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/theme_notifier.dart';
@@ -31,6 +33,21 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.calmNatureDark,
       themeMode: themeNotifier.materialThemeMode,
       home: const MainNavigation(),
+      // --- HIER: Theme dynamisch ersetzen ---
+      builder: (context, child) {
+        // Die aktuell gewünschte Brightness
+        final brightness = MediaQuery.platformBrightnessOf(context);
+        // Das Theme passend zur Theme-Auswahl aus dem Notifier holen
+        final themeData = themeNotifier.getThemeData(
+          themeNotifier.themeMode == AppThemeMode.system
+              ? brightness // Im Systemmodus: Systemhelligkeit
+              : Brightness.light, // Bei Custom Themes immer light/dark wie gewählt
+        );
+        return Theme(
+          data: themeData,
+          child: child!,
+        );
+      },
     );
   }
 }
@@ -45,7 +62,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   static final List<Widget> _screens = [
     DashboardScreen(),
-    QuizScreen(), // Kein toggleTheme mehr nötig
+    QuizScreen(),
     SettingsScreen(),
   ];
 

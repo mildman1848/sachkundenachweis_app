@@ -104,6 +104,7 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final q = currentQuestion;
+    final Color secondary = Theme.of(context).colorScheme.secondary;
 
     return Scaffold(
       appBar: AppBar(
@@ -157,20 +158,40 @@ class _QuizScreenState extends State<QuizScreen> {
 
                         if (submitted) {
                           if (isCorrect && isSelected) {
-                            tileColor = Colors.green.withValues(alpha: (0.20 * 255).toDouble());
+                            tileColor = Colors.green.withValues(
+                              alpha: 0.20 * 255.0,
+                              red: Colors.green.r * 255.0,
+                              green: Colors.green.g * 255.0,
+                              blue: Colors.green.b * 255.0,
+                            );
                             icon = Icons.check_circle;
                             iconColor = Colors.green;
                           } else if (!isCorrect && isSelected) {
-                            tileColor = Colors.red.withValues(alpha: (0.17 * 255).toDouble());
+                            tileColor = Colors.red.withValues(
+                              alpha: 0.17 * 255.0,
+                              red: Colors.red.r * 255.0,
+                              green: Colors.red.g * 255.0,
+                              blue: Colors.red.b * 255.0,
+                            );
                             icon = Icons.cancel;
                             iconColor = Colors.red;
                           } else if (isCorrect && !isSelected) {
-                            tileColor = Colors.yellow.withValues(alpha: (0.20 * 255).toDouble());
+                            tileColor = Colors.yellow.withValues(
+                              alpha: 0.20 * 255.0,
+                              red: Colors.yellow.r * 255.0,
+                              green: Colors.yellow.g * 255.0,
+                              blue: Colors.yellow.b * 255.0,
+                            );
                             icon = Icons.warning_amber_rounded;
                             iconColor = Colors.orange;
                           }
                         } else if (isSelected) {
-                          tileColor = Theme.of(context).colorScheme.secondary.withValues(alpha: (0.14 * 255).toDouble());
+                          tileColor = secondary.withValues(
+                            alpha: 0.14 * 255.0,
+                            red: secondary.r * 255.0,
+                            green: secondary.g * 255.0,
+                            blue: secondary.b * 255.0,
+                          );
                         }
 
                         return Card(
