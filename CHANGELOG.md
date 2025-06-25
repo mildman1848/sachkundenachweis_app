@@ -1,5 +1,27 @@
 # Changelog – Sachkundenachweis
 
+## [1.0.3] – 2025-06-25
+
+### Neu/Funktionen
+- **Dashboard Redesign:** Moderner, motivierender Fortschrittsbereich mit animiertem Donut-Chart, Lottie-Trophäe und Feuerwerk bei 100 %.
+- **Kategorien-Detail:** Klick auf eine Kategorie zeigt alle zugehörigen Fragen samt 3 Antwort-Indikatoren (grün/rot/grau für richtig/falsch/unbeantwortet).
+- **Direktbeantwortung:** Klick auf eine Frage öffnet den Einzel-Fragen-Modus mit Antwort-Feedback und Indikatoren.
+- **Lernmodus:** Neuer „Lernmodus“ pro Kategorie: Alle Fragen der Kategorie werden nacheinander präsentiert, Fortschritt wird angezeigt, Abschluss-Screen nach Durchlauf.
+- **Automatische Fortschrittsaktualisierung:** Nach Beantwortung einer Frage oder im Lernmodus werden CategoryScreen und Dashboard automatisch neu geladen.
+- **PopScope-Integration:** Alle relevanten Screens nutzen jetzt das moderne PopScope/onPopInvokedWithResult für zuverlässiges und DSGVO-freundliches Navigieren (Flutter 3.22+).
+- **Theme-Auswahl stabil & persistent:** Verbesserte Umsetzung des ThemeNotifiers inkl. Darkmode, Bright Minimal & Calm Nature Themes.
+- **Zukunftssicher:** Umstellung aller Widgets und Logik auf Flutter 3.22+ (mit .withValues statt .withOpacity, keine deprecated Color-Felder mehr).
+- **Saubere Modularisierung:** Einzel-Fragen-Screen, Category-Learning-Screen und ProgressCard als eigenständige, leicht wartbare Komponenten.
+
+### Technisch/UX
+- **Lottie-Animationen:** Integration von Lottie-Trophäe und animiertem Feuerwerk direkt in das Dashboard.
+- **Fortschrittsberechnung:** Konsistente Zählweise für gelernte Fragen (3 in Folge korrekt).
+- **Fehlerbehebung:** Keine doppelten oder nicht verwendeten Importe; keine deprecated Methoden mehr im Code; Dashboard und Kategorie-Screens aktualisieren sich sofort nach jeder Aktion.
+- **Responsives Design:** Fortschrittsanzeige und Grid passen sich jeder Bildschirmgröße modern an.
+- **Kategorie-Lernfortschritt:** Korrekte und sofortige Anzeige für alle Kategorien – auch wenn noch keine Frage darin gelernt wurde.
+
+---
+
 ## [1.0.2] – 2025-06-24
 
 ### Neu/Funktionen

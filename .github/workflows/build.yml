@@ -60,6 +60,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.prep_tag.outputs.tag }}
+          name: "Release ${{ steps.prep_tag.outputs.tag }}"
+          body_path: ./changelog.md  # <- changelog wird als Beschreibung gesetzt
           files: build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
