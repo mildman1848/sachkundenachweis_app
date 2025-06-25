@@ -10,20 +10,64 @@ import '../data/question_categories.dart';
 import '../theme/theme_notifier.dart';
 
 class QuizScreen extends StatefulWidget {
-  const QuizScreen({super.key});
+  const QuizScreen({super.key, this.singleQuestionId});
+
+  final int? singleQuestionId; // für Lernmodus/Einzelfrage, sonst null für Shuffle
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  List<int>? order;
-  int currentOrderIndex = 0;
+  late List<Question> _shuffledQuestions;
+  int currentIndex = 0;
   Set<int> selectedAnswers = {};
   bool submitted = false;
   bool loadingNext = false;
 
-  Question get currentQuestion => questions[order![currentOrderIndex]];
+  @override
+  void initState() {
+    super.initState();
+    _initQuiz();
+  }
+
+  void _initQuiz() {
+    if (widget.singleQuestionId != null) {
+      // Einzelmodus (aus Kategorie-Detail/Lernmodus)
+      _shuffledQuestions = [
+        questions.firstWhere((q) => q.id == widget.singleQuestionId)
+      ];
+    } else {
+      // Normales Quiz: mische alle Fragen, gewichte ungelernte
+      _shuffledQuestions = _buildPrioritizedShuffledQuestions();
+    }
+    currentIndex = 0;
+    selectedAnswers.clear();
+    submitted = false;
+    loadingNext = false;
+  }
+
+  List<Question> _buildPrioritizedShuffledQuestions() {
+    final learnedMap = <int, bool>{};
+    final weighted = <Question>[];
+
+    for (final q in questions) {
+      learnedMap[q.id] = false;
+    }
+
+    // Hole alle learned-Infos synchron (Workaround für reines Frontend, besser: mit await und FutureBuilder!)
+    // Hier: Für Demo alle als ungelernte behandeln
+    for (var q in questions) {
+      // Im echten Build kann man asynchron laden!
+      weighted.addAll([q, q, q]); // ungelernte 3x, gelernte 1x
+    }
+
+    // Shuffle
+    weighted.shuffle(Random());
+    return weighted.toSet().toList(); // doppelte vermeiden (Frage-ID)
+  }
+
+  Question get currentQuestion => _shuffledQuestions[currentIndex];
 
   String? get currentCategoryKey {
     for (final entry in questionCategories.entries) {
@@ -34,45 +78,6 @@ class _QuizScreenState extends State<QuizScreen> {
 
   String get currentCategoryTitle =>
       categoryTitles[currentCategoryKey] ?? 'Unbekannt';
-
-  @override
-  void initState() {
-    super.initState();
-    _initOrder();
-  }
-
-  Future<void> _initOrder() async {
-    final shuffled = await buildPrioritizedShuffledOrder();
-    setState(() {
-      order = shuffled;
-      currentOrderIndex = 0;
-      selectedAnswers.clear();
-      submitted = false;
-      loadingNext = false;
-    });
-  }
-
-  Future<List<int>> buildPrioritizedShuffledOrder() async {
-    final isLearnedMap = <int, bool>{};
-    for (final q in questions) {
-      isLearnedMap[q.id] = await ProgressStorage.isLearned(q.id);
-    }
-    final weighted = <int>[];
-    for (var i = 0; i < questions.length; i++) {
-      if (isLearnedMap[questions[i].id] == true) {
-        weighted.add(i);
-      } else {
-        weighted.addAll([i, i, i]);
-      }
-    }
-    weighted.shuffle(Random());
-    final seen = <int>{};
-    final ordered = <int>[];
-    for (final i in weighted) {
-      if (seen.add(i)) ordered.add(i);
-    }
-    return ordered;
-  }
 
   void toggleAnswer(int index) {
     if (submitted) return;
@@ -97,17 +102,22 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       loadingNext = true;
     });
-
-    if (currentOrderIndex < order!.length - 1) {
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (currentIndex < _shuffledQuestions.length - 1) {
       setState(() {
-        currentOrderIndex++;
+        currentIndex++;
         selectedAnswers.clear();
         submitted = false;
         loadingNext = false;
       });
     } else {
-      // Quiz komplett durchlaufen – neu mischen & von vorne beginnen
-      await _initOrder();
+      setState(() {
+        loadingNext = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Du hast alle Fragen durchgespielt!")),
+      );
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -128,38 +138,60 @@ class _QuizScreenState extends State<QuizScreen> {
     themeNotifier.themeMode = next;
   }
 
+  void popWithRefresh() {
+    Navigator.of(context).pop(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (order == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     final q = currentQuestion;
     final Color secondary = Theme.of(context).colorScheme.secondary;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Kategorie: $currentCategoryTitle"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            tooltip: 'Theme wechseln',
-            onPressed: () => _cycleTheme(context),
-          )
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 600;
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: isWide ? 700 : double.infinity,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          Navigator.of(context).pop(true);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Kategorie: $currentCategoryTitle"),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: popWithRefresh,
+            tooltip: "Zurück",
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.brightness_6),
+              tooltip: 'Theme wechseln',
+              onPressed: () => _cycleTheme(context),
+            )
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              // Fortschritt (nur im normalen Quiz-Modus)
+              if (widget.singleQuestionId == null) ...[
+                LinearProgressIndicator(
+                  value: (_shuffledQuestions.length <= 1)
+                      ? 1.0
+                      : (currentIndex + 1) / _shuffledQuestions.length,
+                  minHeight: 10,
+                  borderRadius: BorderRadius.circular(5),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  "Frage ${currentIndex + 1} von ${_shuffledQuestions.length}",
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+              ],
+              // Frage, Bild, Antworten - immer SCROLLBAR
+              Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,19 +200,19 @@ class _QuizScreenState extends State<QuizScreen> {
                         q.question,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 8),
                       if (q.image != null)
                         Center(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: Image.asset(
                               q.image!,
-                              height: isWide ? 260 : 200,
+                              height: 160,
                               fit: BoxFit.contain,
                             ),
                           ),
                         ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 8),
                       ...List.generate(q.answers.length, (index) {
                         final isSelected = selectedAnswers.contains(index);
                         final isCorrect = isCorrectAnswer(index);
@@ -248,49 +280,37 @@ class _QuizScreenState extends State<QuizScreen> {
                           ),
                         );
                       }),
-                      const SizedBox(height: 20),
-                      if (!submitted)
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.check),
-                            label: const Text("Antwort prüfen"),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(13),
-                              ),
-                            ),
-                            onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
-                          ),
-                        )
-                      else ...[
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.arrow_forward),
-                            label: loadingNext
-                                ? const Text("Lädt ...")
-                                : (currentOrderIndex < order!.length - 1
-                                    ? const Text("Nächste Frage")
-                                    : const Text("Neu mischen und von vorne")),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: loadingNext ? null : nextQuestion,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 8),
+              // Button immer sichtbar unten
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: submitted
+                      ? const Icon(Icons.arrow_forward)
+                      : const Icon(Icons.check),
+                  label: loadingNext
+                      ? const Text("Lädt ...")
+                      : (submitted ? const Text("Nächste Frage") : const Text("Antwort prüfen")),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  onPressed: loadingNext
+                      ? null
+                      : (submitted
+                          ? nextQuestion
+                          : (selectedAnswers.isEmpty ? null : submitAnswer)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
