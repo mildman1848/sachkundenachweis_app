@@ -1,12 +1,9 @@
 // lib/screens/single_question_screen.dart
 
 import 'package:flutter/material.dart';
-import '../models/question_model.dart';
 import '../data/questions.dart';
 import '../storage/progress_storage.dart';
-import '../data/question_categories.dart';
-import '../theme/theme_notifier.dart';
-import 'package:provider/provider.dart';
+import '../models/question_model.dart';
 
 class SingleQuestionScreen extends StatefulWidget {
   final int questionId;
@@ -18,35 +15,14 @@ class SingleQuestionScreen extends StatefulWidget {
 }
 
 class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
-  late Question question;
+  late Question q;
   Set<int> selectedAnswers = {};
   bool submitted = false;
-  List<bool> last3 = [];
-  bool loading = true;
-
-  String? get currentCategoryKey {
-    for (final entry in questionCategories.entries) {
-      if (entry.value.contains(question.id)) return entry.key;
-    }
-    return null;
-  }
-
-  String get currentCategoryTitle =>
-      categoryTitles[currentCategoryKey] ?? 'Unbekannt';
 
   @override
   void initState() {
     super.initState();
-    question = questions.firstWhere((q) => q.id == widget.questionId);
-    _loadLast3();
-  }
-
-  Future<void> _loadLast3() async {
-    final res = await ProgressStorage.getLastThreeResults(widget.questionId);
-    setState(() {
-      last3 = res;
-      loading = false;
-    });
+    q = questions.firstWhere((qq) => qq.id == widget.questionId);
   }
 
   void toggleAnswer(int index) {
@@ -61,12 +37,12 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
   }
 
   bool isCorrectAnswer(int index) {
-    return question.correctAnswers.contains(index);
+    return q.correctAnswers.contains(index);
   }
 
   bool isSelectionCorrect() {
-    return Set.from(question.correctAnswers).containsAll(selectedAnswers) &&
-        selectedAnswers.containsAll(question.correctAnswers);
+    return Set.from(q.correctAnswers).containsAll(selectedAnswers) &&
+        selectedAnswers.containsAll(q.correctAnswers);
   }
 
   Future<void> submitAnswer() async {
@@ -74,88 +50,58 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
       submitted = true;
     });
     await ProgressStorage.addAnswerResult(
-        question.id, isSelectionCorrect());
-    await _loadLast3();
+        q.id, isSelectionCorrect());
   }
 
-  void _cycleTheme(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
-    final current = themeNotifier.themeMode;
-    final values = AppThemeMode.values;
-    final next = values[(current.index + 1) % values.length];
-    themeNotifier.themeMode = next;
+  void popWithRefresh() {
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final Color secondary = Theme.of(context).colorScheme.secondary;
-
-    if (loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Kategorie: $currentCategoryTitle"),
-        actions: [
-          Row(
-            children: List.generate(3, (i) {
-              final state = last3.length > i ? last3[i] : null;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Icon(
-                  Icons.circle,
-                  size: 16,
-                  color: state == true
-                      ? Colors.green
-                      : (state == false
-                          ? Colors.red
-                          : Colors.grey.shade400),
-                ),
-              );
-            }),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          Navigator.of(context).pop(true);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Frage beantworten'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: popWithRefresh,
+            tooltip: "Zurück",
           ),
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            tooltip: 'Theme wechseln',
-            onPressed: () => _cycleTheme(context),
-          )
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 600;
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: isWide ? 700 : double.infinity,
-                ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        question.question,
+                        q.question,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 18),
-                      if (question.image != null)
+                      const SizedBox(height: 8),
+                      if (q.image != null)
                         Center(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: Image.asset(
-                              question.image!,
-                              height: isWide ? 260 : 200,
+                              q.image!,
+                              height: 160,
                               fit: BoxFit.contain,
                             ),
                           ),
                         ),
-                      const SizedBox(height: 18),
-                      ...List.generate(question.answers.length, (index) {
+                      const SizedBox(height: 8),
+                      ...List.generate(q.answers.length, (index) {
                         final isSelected = selectedAnswers.contains(index);
                         final isCorrect = isCorrectAnswer(index);
 
@@ -193,11 +139,11 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
                             iconColor = Colors.orange;
                           }
                         } else if (isSelected) {
-                          tileColor = secondary.withValues(
+                          tileColor = Theme.of(context).colorScheme.secondary.withValues(
                             alpha: 0.14 * 255.0,
-                            red: secondary.r * 255.0,
-                            green: secondary.g * 255.0,
-                            blue: secondary.b * 255.0,
+                            red: Theme.of(context).colorScheme.secondary.r * 255.0,
+                            green: Theme.of(context).colorScheme.secondary.g * 255.0,
+                            blue: Theme.of(context).colorScheme.secondary.b * 255.0,
                           );
                         }
 
@@ -215,54 +161,39 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
                               activeColor: Theme.of(context).colorScheme.primary,
                             ),
                             title: Text(
-                              question.answers[index],
+                              q.answers[index],
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             trailing: icon != null ? Icon(icon, color: iconColor) : null,
                           ),
                         );
                       }),
-                      const SizedBox(height: 20),
-                      if (!submitted)
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.check),
-                            label: const Text("Antwort prüfen"),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(13),
-                              ),
-                            ),
-                            onPressed: selectedAnswers.isEmpty ? null : submitAnswer,
-                          ),
-                        )
-                      else ...[
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.arrow_back),
-                            label: const Text("Zurück"),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).pop(true); // << Das löst Refresh aus!
-                            },
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: submitted
+                      ? const Icon(Icons.check_circle)
+                      : const Icon(Icons.check),
+                  label: Text(submitted ? "Zurück" : "Antwort prüfen"),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  onPressed: submitted
+                      ? popWithRefresh
+                      : (selectedAnswers.isEmpty ? null : submitAnswer),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
