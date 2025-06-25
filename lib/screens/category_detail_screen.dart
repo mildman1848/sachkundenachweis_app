@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/questions.dart';
 import '../storage/progress_storage.dart';
 import '../models/question_model.dart';
-import 'single_question_screen.dart'; // <--- Wichtig!
+import 'single_question_screen.dart';
 
 class CategoryDetailScreen extends StatefulWidget {
   final String categoryKey;
@@ -24,6 +24,7 @@ class CategoryDetailScreen extends StatefulWidget {
 
 class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   late Future<List<_QuestionDetail>> _futureDetails;
+  bool refreshRequested = false;
 
   @override
   void initState() {
@@ -42,59 +43,78 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     }));
   }
 
+  Future<bool> _openSingleQuestionScreen(int questionId) async {
+    final refreshed = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SingleQuestionScreen(questionId: questionId),
+      ),
+    );
+    if (refreshed == true) {
+      setState(() {
+        _futureDetails = _loadDetails();
+        refreshRequested = true;
+      });
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Kategorie: ${widget.categoryTitle}'),
-      ),
-      body: FutureBuilder<List<_QuestionDetail>>(
-        future: _futureDetails,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final details = snapshot.data!;
-          return ListView.builder(
-            itemCount: details.length,
-            itemBuilder: (context, idx) {
-              final detail = details[idx];
-              return Card(
-                child: ListTile(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => SingleQuestionScreen(
-                          questionId: detail.question.id,
-                        ),
-                      ),
-                    );
-                  },
-                  title: Text(detail.question.question),
-                  subtitle: Row(
-                    children: List.generate(3, (i) {
-                      final state = detail.last3.length > i
-                          ? detail.last3[i]
-                          : null;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: Icon(
-                          Icons.circle,
-                          size: 14,
-                          color: state == true
-                              ? Colors.green
-                              : (state == false
-                                  ? Colors.red
-                                  : Colors.grey.shade400),
-                        ),
-                      );
-                    }),
+    return PopScope(
+      canPop: true,
+      // NEU: Flutter 3.22+ Verwendung von onPopInvokedWithResult!
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          Navigator.of(context).pop(refreshRequested);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Kategorie: ${widget.categoryTitle}'),
+        ),
+        body: FutureBuilder<List<_QuestionDetail>>(
+          future: _futureDetails,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final details = snapshot.data!;
+            return ListView.builder(
+              itemCount: details.length,
+              itemBuilder: (context, idx) {
+                final detail = details[idx];
+                return Card(
+                  child: ListTile(
+                    onTap: () async {
+                      await _openSingleQuestionScreen(detail.question.id);
+                    },
+                    title: Text(detail.question.question),
+                    subtitle: Row(
+                      children: List.generate(3, (i) {
+                        final state = detail.last3.length > i
+                            ? detail.last3[i]
+                            : null;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: Icon(
+                            Icons.circle,
+                            size: 14,
+                            color: state == true
+                                ? Colors.green
+                                : (state == false
+                                    ? Colors.red
+                                    : Colors.grey.shade400),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

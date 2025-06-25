@@ -5,7 +5,8 @@ import '../storage/progress_dashboard.dart';
 import '../storage/progress_storage.dart';
 import '../data/question_categories.dart';
 import '../data/questions.dart';
-import 'category_detail_screen.dart'; // <--- NEU
+import 'category_detail_screen.dart';
+import '../widgets/global_progress_card.dart'; // <--- NEU!
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -60,7 +61,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       totalPerCat[catKey] = questionCategories[catKey]?.length ?? 0;
     }
 
-    // Globale Fortschrittsberechnung
     final learnedGlobal = await ProgressStorage.getTotalLearnedCount();
     final totalGlobal = questions.length;
     final percentGlobal = totalGlobal == 0 ? 0.0 : learnedGlobal / totalGlobal;
@@ -75,6 +75,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     });
   }
 
+  int get finishedCategoriesCount {
+    int count = 0;
+    for (final catKey in categoryKeys) {
+      final learned = learnedByCategory[catKey] ?? 0;
+      final total = totalByCategory[catKey] ?? 0;
+      if (total > 0 && learned == total) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
@@ -85,7 +97,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
     final categories = categoryKeys;
 
-    // Responsive Spaltenanzahl
     final screenWidth = MediaQuery.of(context).size.width;
     final crossAxisCount = screenWidth > 1000
         ? 4
@@ -94,8 +105,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             : screenWidth > 400
                 ? 2
                 : 1;
-
-    final secondary = Theme.of(context).colorScheme.secondary;
 
     return Scaffold(
       appBar: AppBar(
@@ -112,57 +121,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Globale Fortschrittsanzeige oben
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    "Globaler Fortschritt",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          value: globalPercent,
-                          strokeWidth: 12,
-                          backgroundColor: secondary.withValues(
-                            alpha: 0.18 * 255.0,
-                            red: secondary.r * 255.0,
-                            green: secondary.g * 255.0,
-                            blue: secondary.b * 255.0,
-                          ),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            globalPercent >= 1.0
-                                ? Colors.green
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${(globalPercent * 100).round()}%",
-                              style: Theme.of(context).textTheme.headlineLarge,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "$globalLearned von $globalTotal Fragen gelernt",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            // Moderner Fortschrittsbereich mit Lottie und allem Drum und Dran:
+            GlobalProgressCard(
+              percent: globalPercent,
+              learned: globalLearned,
+              total: globalTotal,
+              finishedCategories: finishedCategoriesCount,
+              totalCategories: totalByCategory.length,
             ),
-            const SizedBox(height: 24),
             Expanded(
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -185,10 +151,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                     ),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () {
+                      onTap: () async {
                         final ids = questionCategories[catKey] ?? [];
                         final title = categoryTitles[catKey] ?? catKey;
-                        Navigator.of(context).push(
+                        final refreshed = await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => CategoryDetailScreen(
                               categoryKey: catKey,
@@ -197,6 +163,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                             ),
                           ),
                         );
+                        if (refreshed == true) {
+                          loadProgress();
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -218,11 +187,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               child: LinearProgressIndicator(
                                 value: percent,
                                 minHeight: 12,
-                                backgroundColor: secondary.withValues(
+                                backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
                                   alpha: 0.15 * 255.0,
-                                  red: secondary.r * 255.0,
-                                  green: secondary.g * 255.0,
-                                  blue: secondary.b * 255.0,
+                                  red: Theme.of(context).colorScheme.secondary.r * 255.0,
+                                  green: Theme.of(context).colorScheme.secondary.g * 255.0,
+                                  blue: Theme.of(context).colorScheme.secondary.b * 255.0,
                                 ),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   percent >= 1.0

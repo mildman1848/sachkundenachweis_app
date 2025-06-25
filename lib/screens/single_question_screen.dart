@@ -75,7 +75,7 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
     });
     await ProgressStorage.addAnswerResult(
         question.id, isSelectionCorrect());
-    await _loadLast3(); // Indikatoren neu laden
+    await _loadLast3();
   }
 
   void _cycleTheme(BuildContext context) {
@@ -250,7 +250,9 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () {
+                              Navigator.of(context).pop(true); // << Das löst Refresh aus!
+                            },
                           ),
                         ),
                       ],
