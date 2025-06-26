@@ -37,7 +37,7 @@
 
 ```bash
 git clone https://github.com/Mildman1848/sachkundenachweis_app.git
-cd sachkundenachweis_flutter
+cd sachkundenachweis_app
 flutter pub get
 flutter run
 ```

@@ -69,7 +69,7 @@ const List<Question> questions = [
       'Der Hund ist unterwürfig.',
     ],
     correctAnswers: [2],
-    image: 'images/6.webp',
+    image: 'images/sketches/6.png',
   ),
   Question(
     id: 7,
@@ -181,7 +181,7 @@ const List<Question> questions = [
       'Der Hund ist unterwürfig.',
     ],
     correctAnswers: [1],
-    image: 'images/16.webp',
+    image: 'images/sketches/16.png',
   ),
   Question(
     id: 17,
@@ -293,7 +293,7 @@ const List<Question> questions = [
       'Der Hund ist unterwürfig.',
     ],
     correctAnswers: [3],
-    image: 'images/26.webp',
+    image: 'images/sketches/26.png',
   ),
   Question(
     id: 27,
@@ -516,7 +516,7 @@ const List<Question> questions = [
       'Der Hund ist unterwürfig mit dem Ansatz einer beschwichtigenden Spielaufforderung.',
     ],
     correctAnswers: [3],
-    image: 'images/46.webp',
+    image: 'images/sketches/46.png',
   ),
   Question(
     id: 47,
@@ -628,7 +628,7 @@ const List<Question> questions = [
       'Der Hund droht sicher.',
     ],
     correctAnswers: [2],
-    image: 'images/56.webp',
+    image: 'images/sketches/56.png',
   ),
   Question(
     id: 57,
@@ -729,7 +729,7 @@ const List<Question> questions = [
       'Der Hund droht unsicher und ist erregt.',
     ],
     correctAnswers: [1],
-    image: 'images/65.webp',
+    image: 'images/sketches/65.png',
   ),
   Question(
     id: 66,
@@ -841,7 +841,7 @@ const List<Question> questions = [
       'Der Hund ist aggressiv.',
     ],
     correctAnswers: [0],
-    image: 'images/75.webp',
+    image: 'images/sketches/75.png',
   ),
   Question(
     id: 76,

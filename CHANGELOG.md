@@ -1,5 +1,23 @@
 # Changelog – Sachkundenachweis
 
+## [1.0.4] – 2025-06-26
+
+### Neu/Funktionen
+- **Offizieller Fragenkatalog 2025 integriert:** Alle 197 Fragen, Antworten und Lösungen wurden exakt aus den offiziellen PDFs für die Sachkundeprüfung NRW 2025 übernommen und auf Richtigkeit abgeglichen.
+- **Kategorien-Zuordnung aktualisiert:** Die Datei `question_categories.dart` enthält jetzt die offiziellen Kategorien und exakte Zuordnung der Fragen laut Lösungskatalog 2025.
+- **Quiz-Flow:** Die Zurück-Funktion im Quiz-Screen wurde entfernt. Ein Zurücknavigieren aus dem Quiz ist nicht mehr möglich.
+- **Quiz-Abschluss:** Nach Beantwortung der letzten Frage bleibt der Quiz-Screen bestehen (optional Abschlussanzeige möglich).
+- **App-Icon-Automatisierung:** Das Android-App-Icon wird im CI/CD-Build-Prozess automatisch gesetzt (`flutter_launcher_icons` läuft automatisch in GitHub Actions).
+- **Build-Workflow verbessert:** GitHub Actions-Workflow erzeugt ab sofort immer das korrekte Icon im APK-Build.
+
+### Technisch/UX
+- **Keine Nutzung von BuildContext nach async-gaps:** Alle Kontextzugriffe nach `await` sind jetzt mit `if (!mounted) return;` abgesichert.
+- **Refactoring:** Entfernen von SnackBars, `Navigator.pop`, und Back-Button im Quiz.
+- **Fragen- und Kategorien-Struktur:** Volle Synchronisierung mit aktuellen PDF-Vorlagen.
+- **Code-Aufräumung:** Nur gezielte Änderungen an Navigation und Zuordnung; UI-Logik und Farblogik bleiben unverändert.
+
+---
+
 ## [1.0.3] – 2025-06-25
 
 ### Neu/Funktionen

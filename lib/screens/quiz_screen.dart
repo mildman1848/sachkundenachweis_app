@@ -11,7 +11,7 @@ import '../theme/theme_notifier.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key, this.singleQuestionId});
-  final int? singleQuestionId; // für Einzelmodus, sonst null für Shuffle
+  final int? singleQuestionId;
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -32,12 +32,10 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _initQuiz() {
     if (widget.singleQuestionId != null) {
-      // Einzelmodus
       _shuffledQuestions = [
         questions.firstWhere((q) => q.id == widget.singleQuestionId)
       ];
     } else {
-      // Normales Quiz: gewichtet und gemischt
       _shuffledQuestions = _buildPrioritizedShuffledQuestions();
     }
     currentIndex = 0;
@@ -47,13 +45,11 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   List<Question> _buildPrioritizedShuffledQuestions() {
-    // Ungelernte Fragen 3x, gelernte 1x
     final weighted = <Question>[];
     for (final q in questions) {
       weighted.addAll([q, q, q]);
     }
     weighted.shuffle(Random());
-    // Keine doppelten IDs
     final ids = <int>{};
     final result = <Question>[];
     for (final q in weighted) {
@@ -112,12 +108,9 @@ class _QuizScreenState extends State<QuizScreen> {
     } else {
       setState(() {
         loadingNext = false;
+        // Keine Rücknavigation, keine SnackBar!
       });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Du hast alle Fragen durchgespielt!")),
-      );
-      Navigator.of(context).pop(true);
+      // Nach letzter Frage: Einfach stehenbleiben, kein zurück
     }
   }
 
@@ -138,14 +131,6 @@ class _QuizScreenState extends State<QuizScreen> {
     themeNotifier.themeMode = next;
   }
 
-  void popWithRefresh() {
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop(true);
-    } else {
-      Navigator.of(context).maybePop(true);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final q = currentQuestion;
@@ -154,11 +139,7 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Kategorie: $currentCategoryTitle"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: popWithRefresh,
-          tooltip: "Zurück",
-        ),
+        // leading entfernt!
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
@@ -172,7 +153,6 @@ class _QuizScreenState extends State<QuizScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Fortschritt nur im normalen Quiz-Modus
             if (widget.singleQuestionId == null) ...[
               LinearProgressIndicator(
                 value: (_shuffledQuestions.length <= 1)
@@ -204,7 +184,6 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
             ],
             const SizedBox(height: 8),
-            // Nur die Antwortmöglichkeiten sind scrollbar!
             Expanded(
               child: SingleChildScrollView(
                 child: Column(

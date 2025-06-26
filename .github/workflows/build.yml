@@ -1,3 +1,5 @@
+# .github/workflows/build.yml
+
 name: 📦 Build APK & Release
 
 on:
@@ -27,6 +29,9 @@ jobs:
 
       - name: 📦 Install Dependencies
         run: flutter pub get
+
+      - name: 🎨 Generate Android App Icon
+        run: flutter pub run flutter_launcher_icons:main -f pubspec.yaml
 
       - name: 🔄 Upgrade all packages
         run: flutter pub upgrade
@@ -61,8 +66,7 @@ jobs:
         with:
           tag_name: ${{ steps.prep_tag.outputs.tag }}
           name: "Release ${{ steps.prep_tag.outputs.tag }}"
-          body_path: ./CHANGELOG.md  # <- changelog wird als Beschreibung gesetzt
+          body_path: ./CHANGELOG.md
           files: build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-
