@@ -1,5 +1,5 @@
 // lib/data/question_categories.dart
-// Automatisch generiert aus Sachkundefragen-neu-ab-01.01.2025.pdf
+// Automatisch generiert aus Sachkundefragen-Loesungen-neu-ab-01.01.2025.pdf
 
 // Alle Kategorie-Keys in Reihenfolge für z.B. Dropdown, Navigation etc.
 const List<String> categoryKeys = [
@@ -49,7 +49,7 @@ const Map<String, String> categoryTitles = {
   'oeffentlichkeit': 'Öffentlichkeit',
 };
 
-// Kategorie-Key → Frage-IDs (direkt aus dem Fragen-PDF, Reihenfolge original)
+// Kategorie-Key → Frage-IDs (direkt aus dem offiziellen Lösungen-PDF, Reihenfolge original)
 final Map<String, List<int>> questionCategories = {
   'ausdrucksverhalten_bilder': [6, 16, 26, 46, 56, 65, 75],
   'ausdrucksverhalten_fragen': [1, 31, 41, 51, 61, 86, 88, 121, 126, 167],

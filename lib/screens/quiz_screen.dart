@@ -101,6 +101,7 @@ class _QuizScreenState extends State<QuizScreen> {
       loadingNext = true;
     });
     await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
     if (currentIndex < _shuffledQuestions.length - 1) {
       setState(() {
         currentIndex++;
@@ -112,6 +113,7 @@ class _QuizScreenState extends State<QuizScreen> {
       setState(() {
         loadingNext = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Du hast alle Fragen durchgespielt!")),
       );
