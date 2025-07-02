@@ -52,10 +52,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
           git add CHANGELOG.md pubspec.yaml package.json package-lock.json
           git commit -m "🔖 Release v${{ steps.extract_tag.outputs.version }}"
+
+          # Lösche ggf. bestehenden Tag lokal & remote (verhindert Fehler)
+          git tag -d "v${{ steps.extract_tag.outputs.version }}" || true
+          git push --delete origin "v${{ steps.extract_tag.outputs.version }}" || true
+
+          # Neuen Tag erstellen und pushen
           git tag "v${{ steps.extract_tag.outputs.version }}"
           git push origin main --follow-tags
+
 
       - name: 📦 Install Flutter dependencies
         run: flutter pub get
