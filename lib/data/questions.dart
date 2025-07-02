@@ -1096,7 +1096,7 @@ const List<Question> questions = [
       'Wenn nur zwei Hunde in die Rauferei verwickelt sind, sollte man die Hunde trennen, indem man am Schwanz oder an den Hinterbeinen zieht, und zwar gleichzeitig bei beiden Hunden.',
       'Man sollte den Hund, der angegriffen worden ist, hinterher trösten und den anderen streng zurechtweisen und bestrafen.',
     ],
-    correctAnswers: [1, 2],
+    correctAnswers: [1],
   ),
   Question(
     id: 99,
