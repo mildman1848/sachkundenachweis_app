@@ -441,12 +441,12 @@ const List<Question> questions = [
   ),
   Question(
     id: 40,
-    question: 'Welche Erkrankungen der Haut, Ohren oder Pfoten können auf eine Allergie hindeuten?',
+    question: 'Warum ist es wichtig, seinen Hund regelmäßig gegen Tollwut impfen zu lassen?',
     answers: [
-      'Ohrenentzündungen, die immer wiederkehren.',
-      'Starkes Lecken oder Kauen an den Pfoten.',
-      'Rötungen oder Pusteln auf der Haut.',
-      'Ausschließlich Zeckenbefall.',
+      'Die Tollwutimpfung ist gesetzlich vorgeschrieben.',
+      'Tollwut ist eine Infektionskrankheit, mit der sich auch Menschen infizieren können.',
+      'Eine Tollwutimpfung ist überflüssig. Tollwut kommt in Deutschland überhaupt nicht mehr vor.',
+      'Tollwutgeimpfte Hunde stehen gesetzlich besser da als ungeimpfte. Weiterhin ist sie für eine Einreise in viele Länder und Rückreise nach Deutschland vorgeschrieben.',
     ],
     correctAnswers: [1, 3],
   ),
