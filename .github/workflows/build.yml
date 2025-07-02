@@ -28,6 +28,11 @@ jobs:
       - name: 📦 Install Node Dependencies (standard-version)
         run: npm install
 
+      - name: 🧑‍💻 Configure Git author for CI
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
       - name: 🧾 Generate CHANGELOG.md & bump version
         run: npx standard-version
 
@@ -45,8 +50,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
           git add CHANGELOG.md pubspec.yaml package.json package-lock.json
           git commit -m "🔖 Release v${{ steps.extract_tag.outputs.version }}"
           git tag "v${{ steps.extract_tag.outputs.version }}"
