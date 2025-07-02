@@ -54,8 +54,8 @@ jobs:
             git add pubspec.lock
             git commit -m "⬆️ Auto-Update pubspec.lock für Release ${{ steps.prep_tag.outputs.tag }}"
             git tag ${{ steps.prep_tag.outputs.tag }}
-            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
-            git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} ${{ steps.prep_tag.outputs.tag }}
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} ${{ steps.prep_tag.outputs.tag }}
           fi
 
       - name: 🏗️ Build Release APK
@@ -69,4 +69,4 @@ jobs:
           body_path: ./CHANGELOG.md
           files: build/app/outputs/flutter-apk/app-release.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
