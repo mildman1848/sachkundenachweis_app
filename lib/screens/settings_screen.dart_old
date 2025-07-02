@@ -24,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
           ...AppThemeMode.values.map((mode) {
             final isSelected = themeNotifier.themeMode == mode;
             final Color base = Theme.of(context).colorScheme.secondary;
-
+            // --- Korrektes Handling für neue Flutter-Versionen:
             final Color? highlight = isSelected
                 ? base.withValues(
                     alpha: 0.15 * 255.0,
@@ -33,17 +33,13 @@ class SettingsScreen extends StatelessWidget {
                     blue: base.b * 255.0,
                   )
                 : null;
-
             return Card(
               color: highlight,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: ListTile(
                 leading: Icon(_iconForTheme(mode)),
                 title: Text(_themeName(mode)),
                 trailing: isSelected
-                    ? Icon(Icons.check_circle, color: base)
+                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.secondary)
                     : null,
                 onTap: () => themeNotifier.themeMode = mode,
               ),

@@ -8,22 +8,26 @@ import 'package:sachkundenachweis/data/questions.dart';
 import 'package:sachkundenachweis/theme/theme_notifier.dart';
 
 void main() {
-  testWidgets('QuizScreen rendert und zeigt erste Frage', (WidgetTester tester) async {
-    // Notwendig: Provider-Wrapper für ThemeNotifier
+  testWidgets('QuizScreen zeigt gezielt ausgewählte Frage korrekt an', (WidgetTester tester) async {
+    final question = questions[0];
+
     await tester.pumpWidget(
       ChangeNotifierProvider(
         create: (_) => ThemeNotifier(),
         child: MaterialApp(
-          home: QuizScreen(),
+          home: QuizScreen(singleQuestionId: question.id),
         ),
       ),
     );
 
-    // Prüfe, ob der Fragetext der ersten Frage angezeigt wird
-    expect(find.text(questions[0].question), findsOneWidget);
+    // warte auf vollständiges Rendering
+    await tester.pumpAndSettle();
 
-    // Prüfe, ob Antwortoptionen angezeigt werden
-    for (final answer in questions[0].answers) {
+    // Fragetext prüfen
+    expect(find.textContaining(question.question), findsOneWidget);
+
+    // Antworten prüfen
+    for (final answer in question.answers) {
       expect(find.text(answer), findsOneWidget);
     }
   });

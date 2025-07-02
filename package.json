@@ -1,0 +1,10 @@
+{
+  "name": "sachkundenachweis",
+  "version": "1.0.6",
+  "scripts": {
+    "release": "standard-version"
+  },
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  }
+}

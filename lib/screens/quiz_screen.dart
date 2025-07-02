@@ -108,9 +108,7 @@ class _QuizScreenState extends State<QuizScreen> {
     } else {
       setState(() {
         loadingNext = false;
-        // Keine Rücknavigation, keine SnackBar!
       });
-      // Nach letzter Frage: Einfach stehenbleiben, kein zurück
     }
   }
 
@@ -139,7 +137,6 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Kategorie: $currentCategoryTitle"),
-        // leading entfernt!
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
@@ -169,7 +166,7 @@ class _QuizScreenState extends State<QuizScreen> {
               const SizedBox(height: 8),
             ],
             Text(
-              q.question,
+              'Frage ${q.id}: ${q.question}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (q.image != null) ...[
@@ -240,17 +237,23 @@ class _QuizScreenState extends State<QuizScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: ListTile(
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         onTap: () => toggleAnswer(index),
-                        leading: Checkbox(
-                          value: isSelected,
-                          onChanged: (_) => toggleAnswer(index),
-                          activeColor: Theme.of(context).colorScheme.primary,
+                        leading: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => toggleAnswer(index),
+                            activeColor: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                         title: Text(
                           q.answers[index],
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        trailing: icon != null ? Icon(icon, color: iconColor) : null,
+                        trailing:
+                            icon != null ? Icon(icon, color: iconColor) : null,
                       ),
                     );
                   }),
@@ -266,7 +269,9 @@ class _QuizScreenState extends State<QuizScreen> {
                     : const Icon(Icons.check),
                 label: loadingNext
                     ? const Text("Lädt ...")
-                    : (submitted ? const Text("Nächste Frage") : const Text("Antwort prüfen")),
+                    : (submitted
+                        ? const Text("Nächste Frage")
+                        : const Text("Antwort prüfen")),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

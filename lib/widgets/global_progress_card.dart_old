@@ -27,13 +27,6 @@ class GlobalProgressCard extends StatelessWidget {
     final percentDisplay = (percent * 100).round();
     final isFinished = percent >= 1.0;
 
-    final surfaceWithAlpha = surface.withValues(
-      alpha: 0.18 * 255.0,
-      red: surface.r * 255.0,
-      green: surface.g * 255.0,
-      blue: surface.b * 255.0,
-    );
-
     return Card(
       elevation: 7,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
@@ -43,6 +36,7 @@ class GlobalProgressCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Headline + Lottie-Trophy
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -63,6 +57,7 @@ class GlobalProgressCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
+            // Donut-Chart mit Feuerwerk als Overlay bei 100%
             Stack(
               alignment: Alignment.center,
               children: [
@@ -77,15 +72,24 @@ class GlobalProgressCard extends StatelessWidget {
                       return Stack(
                         alignment: Alignment.center,
                         children: [
+                          // Hintergrundkreis
                           SizedBox(
                             width: 120,
                             height: 120,
                             child: CircularProgressIndicator(
                               value: 1,
                               strokeWidth: 14,
-                              valueColor: AlwaysStoppedAnimation(surfaceWithAlpha),
+                              valueColor: AlwaysStoppedAnimation(
+                                surface.withValues(
+                                  alpha: 0.18 * 255.0,
+                                  red: surface.r * 255.0,
+                                  green: surface.g * 255.0,
+                                  blue: surface.b * 255.0,
+                                ),
+                              ),
                             ),
                           ),
+                          // Fortschrittskreis
                           SizedBox(
                             width: 120,
                             height: 120,
@@ -98,6 +102,7 @@ class GlobalProgressCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          // Prozent-Anzeige zentriert
                           Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -121,6 +126,7 @@ class GlobalProgressCard extends StatelessWidget {
                   ),
                 ),
                 if (isFinished)
+                  // Feuerwerk-Overlay
                   Positioned.fill(
                     child: IgnorePointer(
                       child: Lottie.asset(

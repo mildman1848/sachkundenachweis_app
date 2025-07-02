@@ -1,12 +1,40 @@
-# Treat all Dart files as text and use LF
+# Dart-Quellcode: Immer als Text mit LF-Zeilenenden behandeln
 *.dart text eol=lf
 
-# Mark image assets as binary
+# YAML-Konfigurationsdateien (Flutter, CI/CD)
+*.yaml text eol=lf
+*.yml  text eol=lf
+
+# Flutter-spezifische Datei
+pubspec.yaml text eol=lf
+
+# Markdown/Changelog/Docs
+*.md text eol=lf
+CHANGELOG.md text eol=lf
+
+# Assets – als Binärdaten behandeln
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.webp binary
-*.svg text
+*.gif binary
+*.ico binary
 
-# Flutter config
-pubspec.yaml text
+# SVG: textbasiert, diffbar
+*.svg text eol=lf
+
+# Schriftarten – Binär
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# JSON-Dateien: normaler Text
+*.json text eol=lf
+
+# CI-Skripte und Shell
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# GitHub Workflow-Dateien
+.github/**/*.yml text eol=lf

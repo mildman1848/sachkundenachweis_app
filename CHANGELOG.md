@@ -1,5 +1,19 @@
 # Changelog – Sachkundenachweis
 
+## [1.0.6] – 2025-07-03
+
+### 🚀 Features
+- feat(quiz): automatische Scroll-Position bei Fragewechsel (#123)
+- feat(theme): ThemeCards mit Farbvorschau und Auswahlhighlight (#125)
+
+### 🐛 Bug Fixes
+- fix(storage): Fragenfortschritt wurde nicht korrekt aktualisiert (#124)
+
+## [1.0.5] – 2025-07-03
+
+### 🐛 Bug Fixes
+- fix(questions): Fragen waren teilweise veraltet.
+
 ## [1.0.4] – 2025-06-26
 
 ### Neu/Funktionen
@@ -93,3 +107,7 @@
 - Flutter-basierter Code
 - Automatischer APK-Build via GitHub Actions
 - Lizenz: GPLv3
+
+---
+
+<!-- auto-generated changelog below this line -->

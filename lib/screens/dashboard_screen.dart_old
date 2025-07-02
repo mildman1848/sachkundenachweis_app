@@ -106,9 +106,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 ? 2
                 : 1;
 
-    final colorScheme = Theme.of(context).colorScheme;
-    final secondary = colorScheme.secondary;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lernfortschritt"),
@@ -124,6 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Moderner Fortschrittsbereich mit Lottie und allem Drum und Dran:
             GlobalProgressCard(
               percent: globalPercent,
               learned: globalLearned,
@@ -145,13 +143,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   final learned = learnedByCategory[catKey] ?? 0;
                   final total = totalByCategory[catKey]!;
                   final percent = (learned / total).clamp(0.0, 1.0);
-
-                  final Color backgroundColor = secondary.withValues(
-                    alpha: 0.15 * 255.0,
-                    red: secondary.r * 255.0,
-                    green: secondary.g * 255.0,
-                    blue: secondary.b * 255.0,
-                  );
 
                   return Card(
                     elevation: 3,
@@ -196,11 +187,16 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               child: LinearProgressIndicator(
                                 value: percent,
                                 minHeight: 12,
-                                backgroundColor: backgroundColor,
+                                backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
+                                  alpha: 0.15 * 255.0,
+                                  red: Theme.of(context).colorScheme.secondary.r * 255.0,
+                                  green: Theme.of(context).colorScheme.secondary.g * 255.0,
+                                  blue: Theme.of(context).colorScheme.secondary.b * 255.0,
+                                ),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   percent >= 1.0
                                       ? Colors.green
-                                      : secondary,
+                                      : Theme.of(context).colorScheme.secondary,
                                 ),
                               ),
                             ),

@@ -117,9 +117,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     label: const Text("Lernmodus starten"),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     onPressed: _openCategoryLearningScreen,
                   ),
@@ -130,21 +128,16 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     itemBuilder: (context, idx) {
                       final detail = details[idx];
                       return Card(
-                        elevation: 1.5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                         child: ListTile(
                           onTap: () async {
                             await _openSingleQuestionScreen(detail.question.id);
                           },
-                          title: Text(
-                            'Frage ${detail.question.id}: ${detail.question.question}',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
+                          title: Text(detail.question.question),
                           subtitle: Row(
                             children: List.generate(3, (i) {
-                              final state = detail.last3.length > i ? detail.last3[i] : null;
+                              final state = detail.last3.length > i
+                                  ? detail.last3[i]
+                                  : null;
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 3),
                                 child: Icon(
@@ -159,7 +152,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               );
                             }),
                           ),
-                          trailing: const Icon(Icons.chevron_right),
                         ),
                       );
                     },
@@ -177,7 +169,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 class _QuestionDetail {
   final Question question;
   final List<bool> last3;
-
   _QuestionDetail({
     required this.question,
     required this.last3,

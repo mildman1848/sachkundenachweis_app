@@ -16,7 +16,6 @@ void main() async {
 
   final themeNotifier = ThemeNotifier();
   await themeNotifier.loadThemeMode();
-
   runApp(
     ChangeNotifierProvider<ThemeNotifier>.value(
       value: themeNotifier,
@@ -57,7 +56,6 @@ class MyApp extends StatelessWidget {
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
-
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
@@ -74,10 +72,8 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _quizLoading = true;
     });
-
-    _currentQuizScreen = const QuizScreen();
-
     setState(() {
+      _currentQuizScreen = const QuizScreen();
       _quizLoading = false;
     });
   }
@@ -117,10 +113,14 @@ class _MainNavigationState extends State<MainNavigation> {
         onTap: (idx) async {
           if (idx == 1) {
             await _loadQuizScreen();
+            setState(() {
+              _selectedIndex = idx;
+            });
+          } else {
+            setState(() {
+              _selectedIndex = idx;
+            });
           }
-          setState(() {
-            _selectedIndex = idx;
-          });
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),

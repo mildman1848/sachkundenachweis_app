@@ -1,34 +1,77 @@
-// lib/screens/category_learning_screen.dart
+// lib/screens/quiz_screen.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
-import '../models/question_model.dart';
-import '../data/questions.dart';
-import '../storage/progress_storage.dart';
-import '../theme/theme_notifier.dart';
 import 'package:provider/provider.dart';
+import '../data/questions.dart';
+import '../models/question_model.dart';
+import '../storage/progress_storage.dart';
+import '../data/question_categories.dart';
+import '../theme/theme_notifier.dart';
 
-class CategoryLearningScreen extends StatefulWidget {
-  final String categoryTitle;
-  final List<int> questionIds;
-
-  const CategoryLearningScreen({
-    super.key,
-    required this.categoryTitle,
-    required this.questionIds,
-  });
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({super.key, this.singleQuestionId});
+  final int? singleQuestionId;
 
   @override
-  State<CategoryLearningScreen> createState() => _CategoryLearningScreenState();
+  State<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
-  int currentIdx = 0;
+class _QuizScreenState extends State<QuizScreen> {
+  late List<Question> _shuffledQuestions;
+  int currentIndex = 0;
   Set<int> selectedAnswers = {};
   bool submitted = false;
-  bool finished = false;
+  bool loadingNext = false;
 
-  Question get currentQuestion =>
-      questions.firstWhere((q) => q.id == widget.questionIds[currentIdx]);
+  @override
+  void initState() {
+    super.initState();
+    _initQuiz();
+  }
+
+  void _initQuiz() {
+    if (widget.singleQuestionId != null) {
+      _shuffledQuestions = [
+        questions.firstWhere((q) => q.id == widget.singleQuestionId)
+      ];
+    } else {
+      _shuffledQuestions = _buildPrioritizedShuffledQuestions();
+    }
+    currentIndex = 0;
+    selectedAnswers.clear();
+    submitted = false;
+    loadingNext = false;
+  }
+
+  List<Question> _buildPrioritizedShuffledQuestions() {
+    final weighted = <Question>[];
+    for (final q in questions) {
+      weighted.addAll([q, q, q]);
+    }
+    weighted.shuffle(Random());
+    final ids = <int>{};
+    final result = <Question>[];
+    for (final q in weighted) {
+      if (!ids.contains(q.id)) {
+        ids.add(q.id);
+        result.add(q);
+      }
+    }
+    return result;
+  }
+
+  Question get currentQuestion => _shuffledQuestions[currentIndex];
+
+  String? get currentCategoryKey {
+    for (final entry in questionCategories.entries) {
+      if (entry.value.contains(currentQuestion.id)) return entry.key;
+    }
+    return null;
+  }
+
+  String get currentCategoryTitle =>
+      categoryTitles[currentCategoryKey] ?? 'Unbekannt';
 
   void toggleAnswer(int index) {
     if (submitted) return;
@@ -41,15 +84,6 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
     });
   }
 
-  bool isCorrectAnswer(int index) {
-    return currentQuestion.correctAnswers.contains(index);
-  }
-
-  bool isSelectionCorrect() {
-    return Set.from(currentQuestion.correctAnswers).containsAll(selectedAnswers) &&
-        selectedAnswers.containsAll(currentQuestion.correctAnswers);
-  }
-
   Future<void> submitAnswer() async {
     setState(() {
       submitted = true;
@@ -59,17 +93,34 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
   }
 
   Future<void> nextQuestion() async {
-    if (currentIdx < widget.questionIds.length - 1) {
+    setState(() {
+      loadingNext = true;
+    });
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+    if (currentIndex < _shuffledQuestions.length - 1) {
       setState(() {
-        currentIdx++;
+        currentIndex++;
         selectedAnswers.clear();
         submitted = false;
+        loadingNext = false;
       });
     } else {
       setState(() {
-        finished = true;
+        loadingNext = false;
+        // Keine Rücknavigation, keine SnackBar!
       });
+      // Nach letzter Frage: Einfach stehenbleiben, kein zurück
     }
+  }
+
+  bool isCorrectAnswer(int index) {
+    return currentQuestion.correctAnswers.contains(index);
+  }
+
+  bool isSelectionCorrect() {
+    return Set.from(currentQuestion.correctAnswers).containsAll(selectedAnswers) &&
+        selectedAnswers.containsAll(currentQuestion.correctAnswers);
   }
 
   void _cycleTheme(BuildContext context) {
@@ -80,55 +131,15 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
     themeNotifier.themeMode = next;
   }
 
-  void popWithRefresh() {
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop(true);
-    } else {
-      Navigator.of(context).maybePop(true);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (finished) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("Lernmodus: ${widget.categoryTitle}"),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: popWithRefresh,
-            tooltip: "Zurück",
-          ),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 70),
-              const SizedBox(height: 18),
-              Text(
-                "Super, du hast alle Fragen dieser Kategorie durchgearbeitet!",
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.arrow_back),
-                label: const Text("Zurück zur Kategorie"),
-                onPressed: popWithRefresh,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final q = currentQuestion;
     final Color secondary = Theme.of(context).colorScheme.secondary;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Lernmodus: ${widget.categoryTitle}"),
+        title: Text("Kategorie: $currentCategoryTitle"),
+        // leading entfernt!
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
@@ -136,42 +147,39 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
             onPressed: () => _cycleTheme(context),
           )
         ],
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: popWithRefresh,
-          tooltip: "Zurück",
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LinearProgressIndicator(
-              value: (currentIdx + 1) / widget.questionIds.length,
-              minHeight: 10,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            const SizedBox(height: 8),
+            if (widget.singleQuestionId == null) ...[
+              LinearProgressIndicator(
+                value: (_shuffledQuestions.length <= 1)
+                    ? 1.0
+                    : (currentIndex + 1) / _shuffledQuestions.length,
+                minHeight: 10,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Frage ${currentIndex + 1} von ${_shuffledQuestions.length}",
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(
-              "Frage ${currentIdx + 1} von ${widget.questionIds.length}",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Frage ${q.id}: ${q.question}',
+              q.question,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (q.image != null) ...[
               const SizedBox(height: 8),
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Image.asset(
-                    q.image!,
-                    height: 160,
-                    fit: BoxFit.contain,
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  q.image!,
+                  height: 160,
+                  fit: BoxFit.contain,
                 ),
               ),
             ],
@@ -232,16 +240,11 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         onTap: () => toggleAnswer(index),
-                        leading: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Checkbox(
-                            value: isSelected,
-                            onChanged: (_) => toggleAnswer(index),
-                            activeColor: Theme.of(context).colorScheme.primary,
-                          ),
+                        leading: Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => toggleAnswer(index),
+                          activeColor: Theme.of(context).colorScheme.primary,
                         ),
                         title: Text(
                           q.answers[index],
@@ -258,24 +261,20 @@ class _CategoryLearningScreenState extends State<CategoryLearningScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: Icon(
-                  finished
-                      ? Icons.check_circle
-                      : (submitted ? Icons.arrow_forward : Icons.check),
-                ),
-                label: finished
-                    ? const Text("Fertig")
-                    : (submitted
-                        ? const Text("Nächste Frage")
-                        : const Text("Antwort prüfen")),
+                icon: submitted
+                    ? const Icon(Icons.arrow_forward)
+                    : const Icon(Icons.check),
+                label: loadingNext
+                    ? const Text("Lädt ...")
+                    : (submitted ? const Text("Nächste Frage") : const Text("Antwort prüfen")),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(13),
                   ),
                 ),
-                onPressed: finished
-                    ? popWithRefresh
+                onPressed: loadingNext
+                    ? null
                     : (submitted
                         ? nextQuestion
                         : (selectedAnswers.isEmpty ? null : submitAnswer)),

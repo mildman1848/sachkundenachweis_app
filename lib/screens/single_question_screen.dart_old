@@ -49,7 +49,8 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
     setState(() {
       submitted = true;
     });
-    await ProgressStorage.addAnswerResult(q.id, isSelectionCorrect());
+    await ProgressStorage.addAnswerResult(
+        q.id, isSelectionCorrect());
   }
 
   void popWithRefresh() {
@@ -79,7 +80,7 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Frage ${q.id}: ${q.question}',
+              q.question,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (q.image != null) ...[
@@ -96,6 +97,7 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
               ),
             ],
             const SizedBox(height: 8),
+            // Antwortmöglichkeiten scrollbar
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -152,16 +154,11 @@ class _SingleQuestionScreenState extends State<SingleQuestionScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         onTap: () => toggleAnswer(index),
-                        leading: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Checkbox(
-                            value: isSelected,
-                            onChanged: (_) => toggleAnswer(index),
-                            activeColor: Theme.of(context).colorScheme.primary,
-                          ),
+                        leading: Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => toggleAnswer(index),
+                          activeColor: Theme.of(context).colorScheme.primary,
                         ),
                         title: Text(
                           q.answers[index],
