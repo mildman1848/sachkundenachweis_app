@@ -80,7 +80,7 @@ const List<Question> questions = [
       'Für einen kurzfristigen Gebrauch von wenigen Minuten kann eine enge Maulschlaufe aus weichem Material, mit der der Hund das Maul einfach nicht mehr aufmachen kann, akzeptabel sein.',
       'Bei Hunden, bei denen wirklich eine Verletzungsgefahr von anderen besteht, muss ein Maulkorb besondere Sicherheitskriterien erfüllen. Er muss so befestigt werden können, dass der Hund ihn nicht abstreifen kann und das Material und die Verarbeitung des Maulkorbs müssen besonders stabil sein.',
     ],
-    correctAnswers: [0, 1, 3],
+    correctAnswers: [0, 1, 2, 3],
   ),
   Question(
     id: 8,
@@ -448,7 +448,7 @@ const List<Question> questions = [
       'Rötungen oder Pusteln auf der Haut.',
       'Ausschließlich Zeckenbefall.',
     ],
-    correctAnswers: [0, 1, 2],
+    correctAnswers: [1, 3],
   ),
 
   Question(
