@@ -1,4 +1,13 @@
-# Changelog – Sachkundenachweis
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### 1.0.7 (2025-07-02)
+
+
+### Bug Fixes
+
+* Update Git tagging process in build workflow ([2e0f262](https://github.com/mildman1848/sachkundenachweis_app/commit/2e0f2620471a4d7e41702eda8c441ad621617889))
 
 ## [1.0.6] – 2025-07-03
 
