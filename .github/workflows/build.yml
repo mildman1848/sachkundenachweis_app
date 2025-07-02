@@ -39,7 +39,9 @@ jobs:
       - name: 🏷️ Extract new version from package.json
         id: extract_tag
         run: |
-          echo "version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
 
       - name: 🔄 Update pubspec.yaml version
         run: |
