@@ -2,8 +2,10 @@
 // Beschreibung: Testet die Integrität der Fragen in lib/data/questions.dart.
 // Überprüft, ob alle 197 Fragen vorhanden sind, keine Duplikate existieren und die IDs lückenlos von 1 bis 197 sind.
 // Der Test ist plattformübergreifend kompatibel und verwendet Best Practices für Flutter-Tests.
+// Änderungen: Binding-Initialisierungsfehler behoben durch Hinzufügen von TestWidgetsFlutterBinding.ensureInitialized() in setUpAll.
+// testWidgets durch normale test-Funktionen ersetzt, da kein UI getestet wird, um unnötige Widget-Pumps zu vermeiden.
+// Explizite Timeouts hinzugefügt für stabile Ausführung auf allen OS (macOS, Windows, Linux).
 
-import 'package:flutter/material.dart'; // Für SizedBox (behebt Undefined name 'SizedBox').
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für Provider-Tests.
 import 'package:sachkundenachweis/data/questions.dart'; // Fragen-Datenquelle importieren.
@@ -33,17 +35,20 @@ void main() {
 
   // Gruppe für Tests des questionsProvider (JSON-basierte Fragen).
   group('Integrität der JSON-Fragen (questionsProvider)', () {
-    testWidgets('Alle Fragen sind eindeutig, lückenlos und komplett', (WidgetTester tester) async {
-      // ProviderScope für Riverpod-Tests initialisieren (Best Practice).
-      await tester.pumpWidget(
-        const ProviderScope(
-          child: SizedBox.shrink(), // Dummy-Widget für Testumgebung.
-        ),
-      );
+    // Initialisiere das Binding einmalig für alle Tests in dieser Gruppe (behebt ServicesBinding-Error).
+    setUpAll(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
 
-      // Fragen aus dem FutureProvider laden.
+    test('Alle Fragen sind eindeutig, lückenlos und komplett', () async {
+      // ProviderContainer für Riverpod-Tests initialisieren (Best Practice).
       final container = ProviderContainer();
-      final questions = await container.read(questionsProvider.future);
+
+      // Fragen aus dem FutureProvider laden, mit Timeout für stabile Ausführung.
+      final questions = await container.read(questionsProvider.future).timeout(
+        const Duration(seconds: 60), // Timeout für JSON-Ladung (anpassbar bei großen Dateien).
+        onTimeout: () => throw Exception('Timeout beim Laden der JSON-Fragen – überprüfe die JSON-Datei oder den Provider.'),
+      );
 
       // IDs aus der JSON-Liste extrahieren.
       final ids = questions.map((q) => q.id).toList();
@@ -64,6 +69,6 @@ void main() {
 
       // Container aufräumen (Best Practice für Riverpod).
       container.dispose();
-    });
+    }, timeout: const Timeout(Duration(seconds: 90))); // Gesamter Test-Timeout erhöht für Kompatibilität.
   });
 }

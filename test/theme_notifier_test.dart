@@ -2,6 +2,9 @@
 // Beschreibung: Testet die ThemeNotifier-Klasse in lib/theme/theme_notifier.dart.
 // Überprüft, ob das Theme korrekt basierend auf Brightness gewechselt wird und materialThemeMode korrekt ist.
 // Der Test ist plattformübergreifend kompatibel und verwendet Best Practices für Flutter-Tests.
+// Änderungen: Binding-Initialisierungsfehler behoben durch Hinzufügen von TestWidgetsFlutterBinding.ensureInitialized() in setUpAll.
+// testWidgets beibehalten für UI-Tests; normale test-Funktionen für nicht-UI-Tests verwendet, um unnötige Pumps zu vermeiden.
+// Explizite Timeouts hinzugefügt für stabile Ausführung auf allen OS (macOS, Windows, Linux).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,9 +12,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sachkundenachweis/theme/theme_notifier.dart';
 
 void main() {
+  // Gruppe für ThemeNotifier-Tests.
   group('ThemeNotifier Tests', () {
+    // Initialisiere das Binding einmalig für alle Tests (behebt potenzielle ServicesBinding-Errors).
+    setUpAll(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
+
     test('ThemeNotifier gibt korrektes Theme basierend auf Brightness zurück', () {
-      // Erstelle einen ThemeNotifier.
+      // Erstelle einen ProviderContainer für isolierte Tests (Best Practice).
       final container = ProviderContainer();
       final themeNotifier = container.read(themeNotifierProvider.notifier);
 
@@ -31,12 +40,12 @@ void main() {
         reason: 'Theme für Brightness.dark sollte Dark-Theme sein.',
       );
 
-      // Container aufräumen.
+      // Container aufräumen (Best Practice für Riverpod).
       container.dispose();
     });
 
     test('ThemeNotifier materialThemeMode ist korrekt', () {
-      // Erstelle einen ThemeNotifier.
+      // Erstelle einen ProviderContainer.
       final container = ProviderContainer();
       final themeNotifier = container.read(themeNotifierProvider.notifier);
 
@@ -52,7 +61,7 @@ void main() {
     });
 
     testWidgets('ThemeNotifier wendet Theme korrekt in MaterialApp an', (WidgetTester tester) async {
-      // Erstelle einen ThemeNotifier für den Test.
+      // Erstelle einen ProviderContainer.
       final container = ProviderContainer();
       final themeNotifier = container.read(themeNotifierProvider.notifier);
       final themeData = themeNotifier.getThemeData(Brightness.light);
@@ -64,7 +73,7 @@ void main() {
             themeNotifierProvider.overrideWith((ref) => ThemeNotifier()),
           ],
           child: MaterialApp(
-            theme: themeData, // Explizit das Theme setzen
+            theme: themeData, // Explizit das Theme setzen.
             home: const Scaffold(body: Text('Test')),
           ),
         ),
@@ -83,6 +92,6 @@ void main() {
 
       // Container aufräumen.
       container.dispose();
-    });
+    }, timeout: const Timeout(Duration(seconds: 30))); // Timeout für stabile Testausführung.
   });
 }
