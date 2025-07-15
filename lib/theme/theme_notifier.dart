@@ -68,12 +68,14 @@ class ThemeNotifier extends StateNotifier<AppThemeState> {
   Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getInt('theme_mode');
-    if (value != null && value >= 0 && value < AppThemeMode.values.length) {
-      state = state.copyWith(mode: AppThemeMode.values[value]);
-    } else {
-      state = state.copyWith(mode: AppThemeMode.system);
+    if (mounted) { // Mounted-Check, um Zugriff nach Dispose zu vermeiden (behebt Bad State Error).
+      if (value != null && value >= 0 && value < AppThemeMode.values.length) {
+        state = state.copyWith(mode: AppThemeMode.values[value]);
+      } else {
+        state = state.copyWith(mode: AppThemeMode.system);
+      }
+      if (kDebugMode) debugPrint('Loaded theme: ${state.mode}'); // Debugging (Produktionstauglich).
     }
-    if (kDebugMode) debugPrint('Loaded theme: ${state.mode}'); // Debugging (Produktionstauglich).
   }
 
   /// Speichert die Theme-Auswahl persistent (Cross-OS).

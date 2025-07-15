@@ -5,10 +5,12 @@
 // Änderungen: Binding-Initialisierungsfehler behoben durch Hinzufügen von TestWidgetsFlutterBinding.ensureInitialized() in setUpAll.
 // testWidgets beibehalten für UI-Tests; normale test-Funktionen für nicht-UI-Tests verwendet, um unnötige Pumps zu vermeiden.
 // Explizite Timeouts hinzugefügt für stabile Ausführung auf allen OS (macOS, Windows, Linux).
+// SharedPreferences-Mock hinzugefügt in setUp, um MissingPluginException zu beheben (ThemeNotifier verwendet SharedPreferences intern).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Für Mock von SharedPreferences (behebt MissingPluginException).
 import 'package:sachkundenachweis/theme/theme_notifier.dart';
 
 void main() {
@@ -17,6 +19,11 @@ void main() {
     // Initialisiere das Binding einmalig für alle Tests (behebt potenzielle ServicesBinding-Errors).
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
+    });
+
+    // Mock SharedPreferences für jeden Test (behebt MissingPluginException bei Theme-Laden).
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
     });
 
     test('ThemeNotifier gibt korrektes Theme basierend auf Brightness zurück', () {
