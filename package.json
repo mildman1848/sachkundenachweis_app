@@ -1,6 +1,6 @@
 {
   "name": "sachkundenachweis",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "scripts": {
     "release": "standard-version"
   },

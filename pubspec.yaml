@@ -1,6 +1,6 @@
 name: sachkundenachweis
 description: Vorbereitung auf den Sachkundenachweis nach LHundG NRW
-version: 1.0.9
+version: 1.0.10
 publish_to: "none"
 
 environment:
