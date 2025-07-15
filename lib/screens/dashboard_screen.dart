@@ -1,68 +1,70 @@
-// lib/screens/dashboard_screen.dart
+// Pfad: lib/screens/dashboard_screen.dart – Dashboard mit Lernfortschritt pro Kategorie und global.
 
 import 'package:flutter/material.dart';
-import '../storage/progress_dashboard.dart';
-import '../storage/progress_storage.dart';
-import '../data/question_categories.dart';
-import '../data/questions.dart';
-import 'category_detail_screen.dart';
-import '../widgets/global_progress_card.dart'; // <--- NEU!
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für State-Management (Best Practice: Asynchron).
+import '../storage/progress_dashboard.dart'; // Fortschritt-Dashboard.
+import '../data/question_categories.dart'; // Kategorien-Daten.
+import 'category_detail_screen.dart'; // Kategorie-Detail.
+import '../widgets/global_progress_card.dart'; // Globale Fortschritts-Karte.
 
-class DashboardScreen extends StatefulWidget {
+// DashboardScreen (ConsumerStatefulWidget für Riverpod, Cross-OS: WidgetsBindingObserver für Resume).
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
-  Map<String, int> learnedByCategory = {};
-  Map<String, int> totalByCategory = {};
-  bool loading = true;
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsBindingObserver {
+  Map<String, int> learnedByCategory = {}; // Gelernte pro Kategorie.
+  Map<String, int> totalByCategory = {}; // Total pro Kategorie.
+  bool loading = true; // Lade-Flag.
 
-  int globalLearned = 0;
-  int globalTotal = 0;
-  double globalPercent = 0.0;
+  int globalLearned = 0; // Global gelernte.
+  int globalTotal = 0; // Global total.
+  double globalPercent = 0.0; // Globaler Prozentsatz.
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    loadProgress();
+    WidgetsBinding.instance.addObserver(this); // Observer für Lifecycle (Cross-OS: Resume-Refresh).
+    loadProgress(); // Initial laden.
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this); // Cleanup.
     super.dispose();
   }
 
+  // Refresh bei Resume (Best Practice: AppLifecycleState).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      loadProgress();
+      loadProgress(); // Neu laden.
     }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    loadProgress();
+    loadProgress(); // Bei Deps-Change (z.B. Theme).
   }
 
+  // Fortschritt laden (asynchron, nutzt Provider).
   Future<void> loadProgress() async {
     setState(() {
       loading = true;
     });
 
-    final byCategory = await ProgressDashboard.getLearnedCountByCategory();
+    final byCategory = await ProgressDashboard.getLearnedCountByCategory(ref); // ref übergeben (behebt Argument-Fehler).
     final totalPerCat = <String, int>{};
     for (final catKey in categoryKeys) {
       totalPerCat[catKey] = questionCategories[catKey]?.length ?? 0;
     }
 
-    final learnedGlobal = await ProgressStorage.getTotalLearnedCount();
-    final totalGlobal = questions.length;
+    final learnedGlobal = await ProgressDashboard.getTotalLearnedCount(ref); // ref übergeben.
+    final totalGlobal = await ProgressDashboard.getTotalQuestionCount(ref); // ref übergeben.
     final percentGlobal = totalGlobal == 0 ? 0.0 : learnedGlobal / totalGlobal;
 
     setState(() {
@@ -75,6 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     });
   }
 
+  // Fertige Kategorien zählen (Best Practice: Getter für Klarheit).
   int get finishedCategoriesCount {
     int count = 0;
     for (final catKey in categoryKeys) {
@@ -91,13 +94,13 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Widget build(BuildContext context) {
     if (loading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: CircularProgressIndicator()), // Const für Lint.
       );
     }
 
-    final categories = categoryKeys;
+    const categories = categoryKeys; // Const für Kategorien.
 
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width; // Responsive Grid.
     final crossAxisCount = screenWidth > 1000
         ? 4
         : screenWidth > 700
@@ -111,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Lernfortschritt"),
+        title: const Text("Lernfortschritt"), // Const.
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -121,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16), // Const.
         child: Column(
           children: [
             GlobalProgressCard(
@@ -146,65 +149,63 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   final total = totalByCategory[catKey]!;
                   final percent = (learned / total).clamp(0.0, 1.0);
 
-                  final Color backgroundColor = secondary.withValues(
-                    alpha: 0.15 * 255.0,
-                    red: secondary.r * 255.0,
-                    green: secondary.g * 255.0,
-                    blue: secondary.b * 255.0,
-                  );
+                  final Color backgroundColor = secondary.withValues(alpha: 0.15); // Alpha angepasst.
 
                   return Card(
                     elevation: 3,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
-                      onTap: () async {
-                        final ids = questionCategories[catKey] ?? [];
-                        final title = categoryTitles[catKey] ?? catKey;
-                        final refreshed = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CategoryDetailScreen(
-                              categoryKey: catKey,
-                              categoryTitle: title,
-                              questionIds: ids,
-                            ),
-                          ),
-                        );
-                        if (refreshed == true) {
-                          loadProgress();
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              categoryTitles[catKey] ?? catKey,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const Spacer(),
-                            Text(
-                              "$learned von $total gelernt",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 6),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(7),
-                              child: LinearProgressIndicator(
-                                value: percent,
-                                minHeight: 12,
-                                backgroundColor: backgroundColor,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  percent >= 1.0
-                                      ? Colors.green
-                                      : secondary,
-                                ),
+                    child: Semantics(  // Accessibility (Best Practice: Screen-Reader).
+                      label: categoryTitles[catKey] ?? catKey,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () async {
+                          final ids = questionCategories[catKey] ?? [];
+                          final title = categoryTitles[catKey] ?? catKey;
+                          final refreshed = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CategoryDetailScreen(
+                                categoryKey: catKey,
+                                categoryTitle: title,
+                                questionIds: ids,
                               ),
                             ),
-                          ],
+                          );
+                          if (refreshed == true) {
+                            loadProgress();
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16), // Const.
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                categoryTitles[catKey] ?? catKey,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const Spacer(), // Const.
+                              Text(
+                                "$learned von $total gelernt",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 6), // Const.
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(7),
+                                child: LinearProgressIndicator(
+                                  value: percent,
+                                  minHeight: 12,
+                                  backgroundColor: backgroundColor,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    percent >= 1.0
+                                        ? Colors.green
+                                        : secondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

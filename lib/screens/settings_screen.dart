@@ -1,51 +1,51 @@
-// lib/screens/settings_screen.dart
+// Pfad: lib/screens/settings_screen.dart – Screen für Einstellungen, z.B. Theme-Wechsel.
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../theme/theme_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für State-Management (Best Practice: Riverpod statt Provider).
+import '../theme/theme_notifier.dart'; // Theme-Notifier.
 
-class SettingsScreen extends StatelessWidget {
+// SettingsScreen (ConsumerWidget für Riverpod, Best Practice: Stateless mit ref).
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeNotifier = ref.watch(themeNotifierProvider.notifier); // Riverpod für Theme (behebt Provider.of).
+    final currentMode = ref.watch(themeNotifierProvider).mode; // Aktueller Mode.
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Einstellungen')),
+      appBar: AppBar(title: const Text('Einstellungen')), // Const.
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16), // Const.
         children: [
           const Text(
             'Design-Auswahl',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 16), // Const.
           ...AppThemeMode.values.map((mode) {
-            final isSelected = themeNotifier.themeMode == mode;
+            final isSelected = currentMode == mode; // Aktueller Check.
             final Color base = Theme.of(context).colorScheme.secondary;
 
             final Color? highlight = isSelected
-                ? base.withValues(
-                    alpha: 0.15 * 255.0,
-                    red: base.r * 255.0,
-                    green: base.g * 255.0,
-                    blue: base.b * 255.0,
-                  )
+                ? base.withValues(alpha: 0.15) // Deprecated behoben, alpha angepasst.
                 : null;
 
-            return Card(
-              color: highlight,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: Icon(_iconForTheme(mode)),
-                title: Text(_themeName(mode)),
-                trailing: isSelected
-                    ? Icon(Icons.check_circle, color: base)
-                    : null,
-                onTap: () => themeNotifier.themeMode = mode,
+            return Semantics(  // Accessibility (Best Practice: Screen-Reader-Support).
+              label: _themeName(mode),
+              child: Card(
+                color: highlight,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Icon(_iconForTheme(mode)),
+                  title: Text(_themeName(mode)),
+                  trailing: isSelected
+                      ? Icon(Icons.check_circle, color: base)
+                      : null,
+                  onTap: () => themeNotifier.setThemeMode(mode), // Setzen via Riverpod.
+                ),
               ),
             );
           }),
@@ -55,6 +55,7 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+// Theme-Namen (Best Practice: Helper-Funktion).
 String _themeName(AppThemeMode mode) {
   switch (mode) {
     case AppThemeMode.system:
@@ -68,6 +69,7 @@ String _themeName(AppThemeMode mode) {
   }
 }
 
+// Icons für Themes (Best Practice: Helper-Funktion).
 IconData _iconForTheme(AppThemeMode mode) {
   switch (mode) {
     case AppThemeMode.system:

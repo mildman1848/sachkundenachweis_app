@@ -1,0 +1,35 @@
+name: Update Questions JSON from PDFs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Täglich um Mitternacht
+  workflow_dispatch:  # Manuell ausführbar
+
+jobs:
+  update-questions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-deu poppler-utils
+          pip install requests pytesseract pymupdf pillow
+
+      - name: Run Update Script
+        run: python scripts/update_questions.py
+
+      - name: Commit Changes if Updated
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add assets/questions.json
+          git commit -m "Updated questions.json from PDFs on $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push

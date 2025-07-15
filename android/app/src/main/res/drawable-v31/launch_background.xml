@@ -3,10 +3,10 @@
     <!-- Hintergrundfarbe (anpassbar für Light/Dark-Modus) -->
     <item android:drawable="?attr/colorBackground" />
 
-    <!-- Zentriertes Splash-Bild -->
+    <!-- Adaptives Icon für Splash-Screen -->
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" />
+            android:src="@mipmap/ic_launcher_adaptive_foreground" />
     </item>
 </layer-list>

@@ -1,28 +1,67 @@
+# Speicherort: .github/dependabot.yml
+# Beschreibung: Konfiguriert automatische Updates für Abhängigkeiten der Sachkundenachweis-App.
+# Verwaltet Flutter/Dart (pub), GitHub Actions und Node.js (npm) Abhängigkeiten mit wöchentlichen oder monatlichen Checks.
+# Folgt Best Practices für Abhängigkeitsmanagement und ist plattformübergreifend kompatibel.
+
 version: 2
 updates:
-  # Flutter/Dart dependencies (pubspec.yaml)
+  # Flutter/Dart-Abhängigkeiten (pubspec.yaml)
   - package-ecosystem: "pub"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily" # Tägliche Checks für schnellere Updates
+      time: "02:00" # Updates um 02:00 UTC
+      timezone: "Europe/Berlin" # Zeitzone für deutsche Nutzer
     commit-message:
-      prefix: "chore(pub)"
+      prefix: "chore(pub):"
+      include: "scope" # Fügt den Abhängigkeitsnamen in die Commit-Nachricht ein
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "flutter"
+    versioning-strategy: increase # Erhöht die Version (z. B. von 2.5.1 zu 2.6.0)
+    groups:
+      flutter-dependencies:
+        patterns:
+          - "*" # Gruppiert alle pub-Abhängigkeiten in einen PR
+    # Ignoriere Flutter SDK selbst, da es über subosito/flutter-action gemanagt wird
+    ignore:
+      - dependency-name: "flutter"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "weekly" # Wöchentliche Checks für Actions
+      time: "02:00"
+      timezone: "Europe/Berlin"
     commit-message:
-      prefix: "chore(actions)"
+      prefix: "chore(actions):"
+      include: "scope"
     open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-dependencies:
+        patterns:
+          - "*" # Gruppiert alle Actions in einen PR
 
-  # Node.js tools (z. B. conventional-changelog)
+  # Node.js-Tools (z. B. standard-version)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "monthly" # Monatliche Checks, da Node.js-Tools seltener aktualisiert werden
+      time: "02:00"
+      timezone: "Europe/Berlin"
     commit-message:
-      prefix: "chore(npm)"
+      prefix: "chore(npm):"
+      include: "scope"
     open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "npm"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*" # Gruppiert alle npm-Abhängigkeiten in einen PR

@@ -1,14 +1,15 @@
-// lib/storage/progress_storage.dart
+// Pfad: lib/storage/progress_storage.dart – Speicherung und Verwaltung des Lernfortschritts mit SharedPreferences.
 
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sachkundenachweis/data/questions.dart'; // <- KORREKT!
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für State-Management (Best Practice: Asynchron).
+import 'package:shared_preferences/shared_preferences.dart'; // Für persistente Speicherung (Cross-OS: Mobile/Web).
+import '../data/questions.dart'; // questionsProvider importieren (behebt 'questions' undefined).
 
 class ProgressStorage {
-  static const String _prefix = 'question_';
+  static const String _prefix = 'question_'; // Präfix für Keys (Best Practice: Konstante).
 
   /// Gibt die letzten 3 Antwort-Ergebnisse als Liste von bool zurück (true = korrekt).
   static Future<List<bool>> getLastThreeResults(int questionId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance(); // SharedPrefs laden (Cross-OS).
     final raw = prefs.getStringList('$_prefix${questionId}_last3') ?? [];
     return raw.map((e) => e == '1').toList();
   }
@@ -18,7 +19,7 @@ class ProgressStorage {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList('$_prefix${questionId}_last3') ?? [];
     final results = raw.map((e) => e == '1').toList();
-    // Neueste Antwort vorne anfügen
+    // Neueste Antwort vorne anfügen (Best Practice: FIFO für letzten 3).
     results.insert(0, isCorrect);
     if (results.length > 3) results.length = 3;
     final saveList = results.map((e) => e ? '1' : '0').toList();
@@ -32,10 +33,11 @@ class ProgressStorage {
   }
 
   /// Setzt den Fortschritt für alle Fragen zurück.
-  static Future<void> resetAllProgress(Iterable<int> questionIds) async {
+  static Future<void> resetAllProgress(WidgetRef ref) async {
     final prefs = await SharedPreferences.getInstance();
-    for (final id in questionIds) {
-      await prefs.remove('$_prefix${id}_last3');
+    final questionsData = await ref.read(questionsProvider.future); // Fragen laden (behebt undefined).
+    for (final q in questionsData) {
+      await prefs.remove('$_prefix${q.id}_last3');
     }
   }
 
@@ -46,9 +48,10 @@ class ProgressStorage {
   }
 
   /// Gibt die Anzahl aller Fragen zurück, die gelernt sind (3x in Folge korrekt).
-  static Future<int> getTotalLearnedCount() async {
+  static Future<int> getTotalLearnedCount(WidgetRef ref) async {
     int count = 0;
-    for (final q in questions) {
+    final questionsData = await ref.read(questionsProvider.future); // Asynchron (behebt undefined).
+    for (final q in questionsData) {
       if (await isLearned(q.id)) count++;
     }
     return count;

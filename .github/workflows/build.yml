@@ -1,3 +1,8 @@
+# Speicherort: .github/workflows/build.yml
+# Beschreibung: Automatisiert den Build- und Release-Prozess der Sachkundenachweis-App.
+# Führt Tests, generiert CHANGELOG, aktualisiert die Version, baut APK und AppBundle, und erstellt ein GitHub-Release.
+# Der Workflow ist plattformübergreifend kompatibel und folgt Best Practices für CI/CD.
+
 name: 📦 Build APK & Release
 
 on:
@@ -12,76 +17,97 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout Repository
+      # Schritt 1: Repository auschecken
+      - name: ⬇️ Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 🛠️ Set up Flutter
+      # Schritt 2: Flutter SDK einrichten
+      - name: 🛠️ Flutter SDK einrichten
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.4'
+          cache: true # Cache für Flutter-Abhängigkeiten aktivieren
+          cache-key: flutter-${{ hashFiles('**/pubspec.lock') }}
+          cache-path: ${{ runner.tool_cache }}/flutter
 
-      - name: 🧰 Set up Node.js
+      # Schritt 3: Node.js einrichten
+      - name: 🧰 Node.js einrichten
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm' # Cache für Node.js-Abhängigkeiten
 
-      - name: 📦 Install Node Dependencies (standard-version)
+      # Schritt 4: Node.js-Abhängigkeiten installieren (standard-version)
+      - name: 📦 Node.js-Abhängigkeiten installieren
         run: npm install
 
-      - name: 🧑‍💻 Configure Git author for CI
+      # Schritt 5: Git-Autor für CI konfigurieren
+      - name: 🧑‍💻 Git-Autor für CI konfigurieren
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: 🧾 Generate CHANGELOG.md & bump version
+      # Schritt 6: CHANGELOG generieren und Version bumpen
+      - name: 🧾 CHANGELOG.md generieren und Version bumpen
         run: npx standard-version
 
-      - name: 🏷️ Extract new version from package.json
+      # Schritt 7: Neue Version aus package.json extrahieren
+      - name: 🏷️ Neue Version aus package.json extrahieren
         id: extract_tag
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-
-      - name: 🔄 Update pubspec.yaml version
+      # Schritt 8: pubspec.yaml Version aktualisieren
+      - name: 🔄 pubspec.yaml Version aktualisieren
         run: |
           version=${{ steps.extract_tag.outputs.version }}
-          sed -i "s/^version: .*/version: $version+1/" pubspec.yaml
+          sed -i "s/^version: .*/version: $version/" pubspec.yaml
 
-      - name: 🔁 Git Commit + Tag + Push (CHANGELOG + pubspec.yaml)
+      # Schritt 9: Git Commit, Tag und Push (CHANGELOG + pubspec.yaml)
+      - name: 🔁 Git Commit, Tag und Push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
           git add CHANGELOG.md pubspec.yaml package.json package-lock.json
-          git commit -m "🔖 Release v${{ steps.extract_tag.outputs.version }}"
-
-          # Lösche ggf. bestehenden Tag lokal & remote (verhindert Fehler)
+          git commit -m "🔖 Release v${{ steps.extract_tag.outputs.version }}" || echo "Keine Änderungen zu committen"
           git tag -d "v${{ steps.extract_tag.outputs.version }}" || true
           git push --delete origin "v${{ steps.extract_tag.outputs.version }}" || true
-
-          # Neuen Tag erstellen und pushen
           git tag "v${{ steps.extract_tag.outputs.version }}"
           git push origin main --follow-tags
 
-
-      - name: 📦 Install Flutter dependencies
+      # Schritt 10: Flutter-Abhängigkeiten installieren
+      - name: 📦 Flutter-Abhängigkeiten installieren
         run: flutter pub get
 
-      - name: 🎨 Generate Android App Icon
+      # Schritt 11: Flutter-Tests ausführen
+      - name: 🧪 Flutter-Tests ausführen
+        run: flutter test
+        continue-on-error: false # Stoppt den Workflow bei fehlgeschlagenen Tests
+
+      # Schritt 12: Android App Icon generieren
+      - name: 🎨 Android App Icon generieren
         run: flutter pub run flutter_launcher_icons:main -f pubspec.yaml
 
-      - name: 🏗️ Build Release APK
+      # Schritt 13: Release APK bauen
+      - name: 🏗️ Release APK bauen
         run: flutter build apk --release
 
-      - name: 🗂 Create GitHub Release
+      # Schritt 14: Release AppBundle bauen
+      - name: 🏗️ Release AppBundle bauen
+        run: flutter build appbundle --release
+
+      # Schritt 15: GitHub Release erstellen
+      - name: 🗂 GitHub Release erstellen
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.extract_tag.outputs.version }}
           name: Release v${{ steps.extract_tag.outputs.version }}
           body_path: ./CHANGELOG.md
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,16 +1,18 @@
-// lib/screens/category_detail_screen.dart
+// Pfad: lib/screens/category_detail_screen.dart – Detail-Screen für Kategorien mit Fortschritt und Navigation.
 
 import 'package:flutter/material.dart';
-import '../data/questions.dart';
-import '../storage/progress_storage.dart';
-import '../models/question_model.dart';
-import 'single_question_screen.dart';
-import 'category_learning_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für State-Management (Best Practice: Asynchrone Daten).
+import '../data/questions.dart'; // questionsProvider importieren.
+import '../storage/progress_storage.dart'; // Fortschritt-Speicherung.
+import '../models/question_model.dart'; // Question-Model.
+import 'single_question_screen.dart'; // Einzelne Frage.
+import 'category_learning_screen.dart'; // Lernmodus.
 
-class CategoryDetailScreen extends StatefulWidget {
-  final String categoryKey;
-  final String categoryTitle;
-  final List<int> questionIds;
+// CategoryDetailScreen (ConsumerStatefulWidget für Riverpod, behebt 'questions' undefined).
+class CategoryDetailScreen extends ConsumerStatefulWidget {
+  final String categoryKey; // Kategorie-Key.
+  final String categoryTitle; // Titel.
+  final List<int> questionIds; // Frage-IDs.
 
   const CategoryDetailScreen({
     super.key,
@@ -20,23 +22,25 @@ class CategoryDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<CategoryDetailScreen> createState() => _CategoryDetailScreenState();
+  ConsumerState<CategoryDetailScreen> createState() => _CategoryDetailScreenState();
 }
 
-class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
-  late Future<List<_QuestionDetail>> _futureDetails;
-  bool refreshRequested = false;
+class _CategoryDetailScreenState extends ConsumerState<CategoryDetailScreen> {
+  late Future<List<_QuestionDetail>> _futureDetails; // Zukunftige Details (asynchron).
+  bool refreshRequested = false; // Refresh-Flag.
 
   @override
   void initState() {
     super.initState();
-    _futureDetails = _loadDetails();
+    _futureDetails = _loadDetails(); // Details laden.
   }
 
+  // Details laden (nutzt questionsProvider, behebt 'questions' undefined).
   Future<List<_QuestionDetail>> _loadDetails() async {
+    final questionsData = await ref.read(questionsProvider.future); // Fragen aus Provider laden (Best Practice: Asynchron).
     return Future.wait(widget.questionIds.map((id) async {
-      final question = questions.firstWhere((q) => q.id == id);
-      final last3 = await ProgressStorage.getLastThreeResults(id);
+      final question = questionsData.firstWhere((q) => q.id == id); // Frage finden.
+      final last3 = await ProgressStorage.getLastThreeResults(id); // Letzte Ergebnisse.
       return _QuestionDetail(
         question: question,
         last3: last3,
@@ -44,6 +48,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     }));
   }
 
+  // Einzelne Frage öffnen (Navigation, Refresh bei Rückkehr).
   Future<void> _openSingleQuestionScreen(int questionId) async {
     final refreshed = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -52,12 +57,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
     if (refreshed == true) {
       setState(() {
-        _futureDetails = _loadDetails();
-        refreshRequested = true;
+        _futureDetails = _loadDetails(); // Neu laden.
+        refreshRequested = true; // Flag setzen.
       });
     }
   }
 
+  // Lernmodus öffnen (analog).
   Future<void> _openCategoryLearningScreen() async {
     final refreshed = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -75,6 +81,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     }
   }
 
+  // Pop mit Refresh (Best Practice: Navigation-Handling).
   void popWithRefresh() {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop(refreshRequested);
@@ -85,11 +92,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // PopScope für Back-Handling (Cross-OS: Android/iOS).
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          popWithRefresh();
+          popWithRefresh(); // Refresh bei Pop.
         }
       },
       child: Scaffold(
@@ -105,7 +113,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           future: _futureDetails,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator()); // Loading-Indicator.
             }
             final details = snapshot.data!;
             return Column(
@@ -134,32 +142,35 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: ListTile(
-                          onTap: () async {
-                            await _openSingleQuestionScreen(detail.question.id);
-                          },
-                          title: Text(
-                            'Frage ${detail.question.id}: ${detail.question.question}',
-                            style: Theme.of(context).textTheme.bodyLarge,
+                        child: Semantics(  // Accessibility (Best Practice: Screen-Reader-Support).
+                          label: 'Frage ${detail.question.id}: ${detail.question.question}',
+                          child: ListTile(
+                            onTap: () async {
+                              await _openSingleQuestionScreen(detail.question.id);
+                            },
+                            title: Text(
+                              'Frage ${detail.question.id}: ${detail.question.question}',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            subtitle: Row(
+                              children: List.generate(3, (i) {
+                                final state = detail.last3.length > i ? detail.last3[i] : null;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                                  child: Icon(
+                                    Icons.circle,
+                                    size: 14,
+                                    color: state == true
+                                        ? Colors.green
+                                        : (state == false
+                                            ? Colors.red
+                                            : Colors.grey.shade400),
+                                  ),
+                                );
+                              }),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
                           ),
-                          subtitle: Row(
-                            children: List.generate(3, (i) {
-                              final state = detail.last3.length > i ? detail.last3[i] : null;
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3),
-                                child: Icon(
-                                  Icons.circle,
-                                  size: 14,
-                                  color: state == true
-                                      ? Colors.green
-                                      : (state == false
-                                          ? Colors.red
-                                          : Colors.grey.shade400),
-                                ),
-                              );
-                            }),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
                         ),
                       );
                     },
@@ -174,6 +185,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 }
 
+// Interne Klasse für Details (Best Practice: Encapsulation).
 class _QuestionDetail {
   final Question question;
   final List<bool> last3;

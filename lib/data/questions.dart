@@ -1,9 +1,23 @@
-// lib/data/questions.dart
+// Speicherort: lib/data/questions.dart
+// Beschreibung: Datenquelle für Prüfungsfragen, basierend auf PDF ab 01.01.2025.
+// Diese Datei enthält einen FutureProvider für das Laden von Fragen aus einer JSON-Datei sowie eine statische Fallback-Liste.
+// Der Code ist plattformübergreifend kompatibel und folgt Best Practices für Flutter/Dart.
 
-import '../models/question_model.dart';
+import 'package:flutter/services.dart' show rootBundle; // Für JSON-Loading (Best Practice: Dynamisch, Cross-OS).
+import 'dart:convert'; // Für JSON-Parsing.
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Für Provider (State-Management, Best Practice).
+import '../models/question_model.dart'; // Question-Model importieren (freezed für Immutability).
 
-const List<Question> questions = [
+// Provider für Fragen (Best Practice: Lazy-Loading, skalierbar).
+final questionsProvider = FutureProvider<List<Question>>((ref) async {
+  // JSON aus assets laden (Cross-OS: Funktioniert auf Mobile/Web).
+  final jsonString = await rootBundle.loadString('assets/questions.json');
+  final jsonList = json.decode(jsonString) as List<dynamic>;
+  return jsonList.map((json) => Question.fromJson(json)).toList(); // Freezed fromJson (behebt Fehler).
+});
 
+// Fallback: Statische Liste (bis Migration abgeschlossen, const für Performance).
+const List<Question> questionsFallback = [
   Question(
     id: 1,
     question: 'Was sind typische Jagdverhaltensweisen?',
@@ -2187,3 +2201,20 @@ const List<Question> questions = [
     correctAnswers: [1, 2],
   ),
 ];
+
+// Hilfsfunktion: Frage per ID abrufen (Best Practice: Abstraktion).
+/// Sucht eine Frage aus der Liste `questionsFallback` basierend auf der übergebenen ID.
+/// Gibt eine Fallback-Frage zurück, falls keine Frage gefunden wird.
+/// @param id Die ID der gesuchten Frage.
+/// @return Question Die gefundene Frage oder eine Fallback-Frage.
+Question getQuestionById(int id) {
+  return questionsFallback.firstWhere(
+    (q) => q.id == id,
+    orElse: () => const Question(
+      id: 0,
+      question: '',
+      answers: [],
+      correctAnswers: [],
+    ),
+  ); // Verwendung von const für den Fallback
+}

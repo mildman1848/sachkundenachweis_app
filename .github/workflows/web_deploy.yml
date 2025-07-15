@@ -1,3 +1,8 @@
+# Speicherort: .github/workflows/web_deploy.yml
+# Beschreibung: Automatisiert den Build- und Deployment-Prozess der Flutter-Web-App auf GitHub Pages.
+# Führt Tests, baut die Web-App und deployed sie auf GitHub Pages mit korrektem base-href.
+# Der Workflow ist plattformübergreifend kompatibel und folgt Best Practices für CI/CD.
+
 name: 🚀 Deploy Flutter Web to GitHub Pages
 
 on:
@@ -12,24 +17,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout repository
+      # Schritt 1: Repository auschecken
+      - name: ⬇️ Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 🛠️ Set up Flutter
+      # Schritt 2: Flutter SDK einrichten
+      - name: 🛠️ Flutter SDK einrichten
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.4'
           channel: stable
+          cache: true # Cache für Flutter-Abhängigkeiten aktivieren
+          cache-key: flutter-${{ hashFiles('**/pubspec.lock') }}
+          cache-path: ${{ runner.tool_cache }}/flutter
 
-      - name: 📦 Install dependencies
+      # Schritt 3: Flutter-Abhängigkeiten installieren
+      - name: 📦 Flutter-Abhängigkeiten installieren
         run: flutter pub get
 
-      - name: 🏗️ Build Flutter Web
+      # Schritt 4: Flutter-Tests ausführen
+      - name: 🧪 Flutter-Tests ausführen
+        run: flutter test
+        continue-on-error: false # Stoppt den Workflow bei fehlgeschlagenen Tests
+
+      # Schritt 5: Version aus pubspec.yaml extrahieren
+      - name: 🏷️ Version aus pubspec.yaml extrahieren
+        id: extract_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Schritt 6: Flutter Web bauen
+      - name: 🏗️ Flutter Web bauen
         run: flutter build web --release --base-href="/sachkundenachweis_app/"
 
-      - name: 🚀 Deploy to GitHub Pages
+      # Schritt 7: Web-Build als Artefakt speichern
+      - name: 📤 Web-Build als Artefakt speichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+          retention-days: 7 # Artefakte für 7 Tage speichern
+
+      # Schritt 8: Auf GitHub Pages deployen
+      - name: 🚀 Auf GitHub Pages deployen
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
           force_orphan: true
+          commit_message: "Deploy Web-App v${{ steps.extract_version.outputs.version }} zu GitHub Pages"

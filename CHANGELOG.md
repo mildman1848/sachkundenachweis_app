@@ -2,6 +2,105 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.0.0
+## 2025-07-15 - Verbesserungen in lib/screens/category_learning_screen.dart
+- Deprecated withOpacity durch withValues ersetzt (behebt Precision-Loss-Warnung, Best Practice: Genauigkeit).
+- Deutsche Kommentare und Pfad-Kommentar beibehalten.
+- Cross-OS-Kompatibilität: Vibration-Checks, responsive UI (MediaQuery implizit).
+- Best Practices: Const für Konstanten (z.B. Icons, Texts, EdgeInsets – wo möglich final zu const geändert).
+- Riverpod-Integration für Theme und Fragen beibehalten.
+## 2025-07-15 - Verbesserungen in lib/screens/category_learning_screen.dart
+- Wechsel zu ConsumerStatefulWidget für Riverpod (behebt Provider.of, nutzt ref für themeNotifierProvider).
+- Asynchrone Frage-Ladung mit questionsProvider (FutureBuilder, behebt 'questions' undefined).
+- Haptic-Feedback bei Toggle/Submit hinzugefügt (Vibration, Cross-OS-Check).
+- Accessibility: Semantics für Cards/ListTiles (Screen-Reader).
+- Deutsche Kommentare und Pfad-Kommentar ergänzt.
+- Responsive: MediaQuery implizit, Padding angepasst.
+- Best Practices: Null-Safety, required Fields, Error-Handling in Futures.
+## 2025-07-15 - Verbesserungen in lib/screens/category_detail_screen.dart
+- Wechsel zu ConsumerStatefulWidget für Riverpod (behebt 'questions' undefined durch questionsProvider).
+- Asynchrone Lade-Logik mit ref.read(questionsProvider.future) integriert (Best Practice: FutureBuilder für Loading).
+- Deutsche Kommentare und Pfad-Kommentar hinzugefügt.
+- Accessibility: Semantics für ListTiles (Screen-Reader-Support, Best Practice).
+- Cross-OS-Kompatibilität: PopScope für Back-Handling (Android/iOS), responsive Padding.
+- Refresh-Logik bei Navigation beibehalten.
+## 2025-07-15 - Überarbeitung von pubspec.yaml
+- flutter_riverpod beibehalten und Version aktualisiert (Best Practice: State-Management).
+- Freezed/JSON-Deps hinzugefügt (freezed_annotation, json_annotation, freezed, build_runner, json_serializable) für immutable Models und JSON-Loading.
+- Vibration hinzugefügt für Haptic-Feedback (Cross-OS: Platform-Checks).
+- Flutter_localizations für Localization-Vorbereitung (Best Practice).
+- Fl_chart-Version aktualisiert, iOS-Support für Icons hinzugefügt.
+- Assets: questions.json für dynamische Daten.
+- Dev_deps: flutter_lints aktualisiert.
+- SDK-Range auf >=3.0.0 für Null-Safety und Kompatibilität.
+- Fonts/Assets beibehalten, Cross-OS optimiert (z.B. WebP-Empfehlung).
+## 2025-07-15 - Überarbeitung von lib/models/question_model.dart
+- Wechsel zu freezed für immutable Model (Best Practice: Null-Safety, Performance, JSON-Support).
+- Hinzufügung von fromJson und toJson (via json_serializable) für JSON-Integration.
+- Deutsche Kommentare und Pfad-Kommentar ergänzt.
+- Cross-OS-Kompatibilität: Pure Dart, läuft auf allen Plattformen (Android, iOS, Web).
+- pubspec.yaml: freezed_annotation, json_annotation hinzugefügt; freezed, build_runner als dev_deps (führe `flutter pub run build_runner build` aus).
+## 2025-07-15 - Behebung in lib/data/questions.dart und lib/models/question_model.dart
+- Freezed-Integration vervollständigt (fromJson hinzugefügt, behebt Method not defined).
+- pubspec.yaml: freezed_annotation, freezed, json_annotation, build_runner hinzugefügt (dev_deps für build).
+- Deutsche Kommentare ergänzt.
+- Cross-OS: JSON-Loading mit rootBundle (Mobile/Web).
+- Führe `flutter pub run build_runner build` aus, um Parts zu generieren.
+## 2025-07-14 - Neue GitHub Action und Skript für PDF-Update
+- GitHub Action workflow für tägliches PDF-Check und Update erstellt.
+- Python-Skript update_questions.py für Download, Change-Check (Hash), OCR/Text-Extraktion und JSON-Update.
+- Parser-Stub für Fragen/Lösungen (anpassen an PDF-Struktur).
+- Deps: requests, hashlib, fitz, PIL, pytesseract.
+## 2025-07-13 - Verbesserungen in lib/main.dart
+- Wechsel von Provider zu Riverpod für besseres State-Management (Best Practice: Immutable und testbar).
+- Entfernung redundanter asynchroner Lade-Logik und MainNavigation-Widget (Vereinfachung: Lazy-Loading via Riverpod).
+- Hinzufügung deutscher Kommentare und Pfad-Kommentar am Anfang.
+- Cross-OS-Kompatibilität: Plattform-Checks (Platform.isIOS, kIsWeb), System-Theme-Sync, Accessibility mit Semantics.
+- Error-Handling verbessert (FlutterError.onError).
+- Kürzung des Codes für Effizienz, ohne Funktionalität zu verlieren.
+- Riverpod-Dependency hinzugefügt und Imports korrigiert.
+- kDebugMode importiert und print durch debugPrint ersetzt (Lint-freundlich).
+- themeNotifierProvider in theme_notifier.dart definiert.
+- Cross-OS-Checks und Accessibility hinzugefügt.
+- Code vereinfacht, ohne Originalfunktionalität zu verlieren.
+## 2025-07-13 - Verbesserungen in lib/theme/theme_notifier.dart
+- Wechsel von ChangeNotifier zu StateNotifier mit Riverpod (Best Practice: Immutable State, Kompatibilität mit main.dart).
+- Definition von themeNotifierProvider hinzugefügt.
+- Deutsche Kommentare und Pfad-Kommentar ergänzt.
+- Cross-OS: Brightness.system für Theme-Sync (Android, iOS, Web).
+- Vereinfachung von Switch-Cases und Vorbereitung für Material You.
+- Persistent Storage beibehalten, Debugging mit debugPrint (Lint-freundlich).
+## 2025-07-13 - Weitere Behebungen für Riverpod-Integration
+- Import zu flutter_riverpod korrigiert (behebt ProviderScope, ConsumerWidget, WidgetRef usw.).
+- pubspec.yaml: flutter_riverpod empfohlen.
+- @override für initState und build hinzugefügt (behebt Override-Warnungen).
+- Typ-Korrekturen für ConsumerStatefulWidget und ConsumerState (behebt Extend-Fehler und setState).
+- Cross-OS und Best Practices beibehalten.
+## 2025-07-13 - Behebung weiterer Fehler in lib/main.dart
+- getTheme-Aufruf korrigiert zu getThemeData mit Brightness (behebt 'getTheme' nicht definiert).
+- themeMode zu materialThemeMode geändert (behebt Typ-Zuweisung AppThemeMode -> ThemeMode).
+- Named 'key'-Parameter zu allen Widget-Konstruktoren hinzugefügt (behebt Konstruktor-Warnung).
+- Deutsche Kommentare und Cross-OS-Kompatibilität beibehalten.
+- Best Practices: MediaQuery für Brightness, super(key: key) für Widgets.
+## 2025-07-13 - Behebung der Lint-Warnung in lib/main.dart
+- Variable 'brightness' integriert in getThemeData-Aufruf für currentTheme (behebt ungenutzte Variable).
+- Theme-Abruf dynamisch gemacht basierend auf Brightness (Best Practice: Responsiv und reduziert Duplikation).
+- Deutsche Kommentare und Cross-OS-Kompatibilität (MediaQuery) beibehalten.
+## 2025-07-13 - Verbesserungen in lib/data/question_categories.dart
+- Deutsche Kommentare und Pfad-Kommentar hinzugefügt.
+- Typ-Annotationen für Listen/Maps ergänzt (Best Practice: Null-Safety und Klarheit).
+- Hilfsfunktionen getCategoryTitle und getQuestionIdsByCategory hinzugefügt (skalierbar, z.B. für dynamische Abfragen).
+- Cross-OS-Kompatibilität: Pure Dart, läuft überall (keine Änderungen nötig).
+- Struktur beibehalten, aber für JSON-Migration vorbereitet (z.B. bei PDF-Updates).
+## 2025-07-13 - Verbesserungen in lib/data/questions.dart
+- Deutsche Kommentare und Pfad-Kommentar hinzugefügt.
+- Migration zu JSON (assets/questions.json) für dynamische Updates vorbereitet (Best Practice: Skalierbar, einfache PDF-Änderungen).
+- Riverpod-Provider für Lazy-Loading integriert (Cross-OS: rootBundle für Mobile/Web).
+- Freezed-Integration für Question-Model empfohlen (immutable, Null-Safety).
+- Hilfsfunktion getQuestionById hinzugefügt.
+- Daten auf Aktualität überprüft (passt zu PDF ab 01.01.2025).
+
+
 ### 1.0.7 (2025-07-02)
 
 

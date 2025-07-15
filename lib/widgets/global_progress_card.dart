@@ -1,14 +1,14 @@
-// lib/widgets/global_progress_card.dart
+// Pfad: lib/widgets/global_progress_card.dart – Widget für globale Fortschrittsanzeige mit Animationen.
 
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:lottie/lottie.dart'; // Für Lottie-Animationen (Cross-OS: Assets).
 
 class GlobalProgressCard extends StatelessWidget {
-  final double percent;
-  final int learned;
-  final int total;
-  final int finishedCategories;
-  final int totalCategories;
+  final double percent; // Fortschrittsprozentsatz.
+  final int learned; // Gelernte Fragen.
+  final int total; // Gesamtanzahl Fragen.
+  final int finishedCategories; // Abgeschlossene Kategorien.
+  final int totalCategories; // Gesamtanzahl Kategorien.
 
   const GlobalProgressCard({
     super.key,
@@ -25,21 +25,16 @@ class GlobalProgressCard extends StatelessWidget {
     final primary = theme.colorScheme.primary;
     final surface = theme.colorScheme.surface;
     final percentDisplay = (percent * 100).round();
-    final isFinished = percent >= 1.0;
+    const isFinished = 1.0; // Const für statische Bedingung (Lint).
 
-    final surfaceWithAlpha = surface.withValues(
-      alpha: 0.18 * 255.0,
-      red: surface.r * 255.0,
-      green: surface.g * 255.0,
-      blue: surface.b * 255.0,
-    );
+    final surfaceWithAlpha = surface.withValues(alpha: 0.18); // Deprecated behoben, alpha angepasst.
 
     return Card(
       elevation: 7,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 24), // Const.
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24), // Const.
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -55,14 +50,14 @@ class GlobalProgressCard extends StatelessWidget {
                     animate: true,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 10), // Const.
                 Text(
                   "Dein Lernfortschritt",
                   style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 14), // Const.
             Stack(
               alignment: Alignment.center,
               children: [
@@ -70,7 +65,7 @@ class GlobalProgressCard extends StatelessWidget {
                   width: 120,
                   height: 120,
                   child: TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 1000),
+                    duration: const Duration(milliseconds: 1000), // Const.
                     curve: Curves.easeOutCubic,
                     tween: Tween<double>(begin: 0, end: percent),
                     builder: (context, value, child) {
@@ -94,7 +89,7 @@ class GlobalProgressCard extends StatelessWidget {
                               strokeWidth: 14,
                               backgroundColor: Colors.transparent,
                               valueColor: AlwaysStoppedAnimation(
-                                isFinished ? Colors.green : primary,
+                                percent >= isFinished ? Colors.green : primary,
                               ),
                             ),
                           ),
@@ -108,9 +103,9 @@ class GlobalProgressCard extends StatelessWidget {
                                   color: primary,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 4), // Const.
                               Text(
-                                isFinished ? "Alles geschafft!" : "geschafft",
+                                percent >= isFinished ? "Alles geschafft!" : "geschafft",
                                 style: theme.textTheme.labelLarge,
                               ),
                             ],
@@ -120,7 +115,7 @@ class GlobalProgressCard extends StatelessWidget {
                     },
                   ),
                 ),
-                if (isFinished)
+                if (percent >= isFinished)
                   Positioned.fill(
                     child: IgnorePointer(
                       child: Lottie.asset(
@@ -132,12 +127,12 @@ class GlobalProgressCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 14), // Const.
             Text(
               "$learned von $total Fragen gelernt",
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 4), // Const.
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -145,7 +140,7 @@ class GlobalProgressCard extends StatelessWidget {
                   "$finishedCategories / $totalCategories Kategorien abgeschlossen",
                   style: theme.textTheme.bodyMedium,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 8), // Const.
                 Icon(
                   finishedCategories == totalCategories
                       ? Icons.emoji_events_rounded

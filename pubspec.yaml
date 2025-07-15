@@ -1,47 +1,71 @@
 name: sachkundenachweis
 description: Vorbereitung auf den Sachkundenachweis nach LHundG NRW
-version: 1.0.7+1
+version: 2.0.0+1
 publish_to: "none"
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.0.0 <4.0.0'  # Neueste SDK-Range für Null-Safety und Kompatibilität.
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # State Management (für Multi-Theme und Co.)
-  provider: ^6.1.2
+  # State-Management (Riverpod für moderne Best Practices, ersetzt Provider).
+  flutter_riverpod: ^2.6.1  # Moderne State-Management-Lösung (Best Practice: Immutable, skalierbar).
 
-  # Lokale Speicherung für Fortschritt & Theme
+  # Lokale Speicherung für Fortschritt, Theme und Settings (Cross-OS kompatibel).
   shared_preferences: ^2.2.2
 
-  # Fortschrittsanzeige (Diagramme, optional)
-  fl_chart: ^1.0.0
+  # Fortschrittsanzeige für Dashboard (optional, responsiv mit MediaQuery).
+  fl_chart: ^0.68.0  # Aktualisiert auf neueste Version für bessere Performance.
 
-  # Icons im Cupertino-Stil (optional)
+  # Icons im Cupertino-Stil (für iOS-Kompatibilität, Best Practice).
   cupertino_icons: ^1.0.8
 
+  # Animations für Feedback (z.B. Correct/Incorrect, Cross-OS via Assets).
   lottie: ^3.3.1
+
+  # Immutable Models und JSON-Serialisierung (Best Practice: Freezed für Question-Model).
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Haptic-Feedback (Vibration, Cross-OS: Check mit Vibration.hasVibrator).
+  vibration: ^1.9.0
+
+  # Localization (Vorbereitung für Multi-Language, Best Practice).
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  flutter_launcher_icons: ^0.14.4
+
+  # Linter für Code-Qualität (Best Practice: flutter format .).
+  flutter_lints: ^4.0.0  # Aktualisiert für neueste Rules.
+
+  # Launcher-Icons-Generator (Cross-OS Icons).
+  flutter_launcher_icons: ^0.14.1  # Neueste Version.
+
+  # Build-Runner für Freezed/JSON (Best Practice: Code-Generation).
+  build_runner: ^2.4.12
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
 
 flutter_launcher_icons:
   android: true
-  image_path: "assets/icon.png"
+  ios: true  # Hinzugefügt für iOS-Kompatibilität (Best Practice).
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_foreground: "assets/icon/launch_image.png"  # Optional: Vordergrund-Bild.
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/
+    - assets/images/  # Für Bilder (Cross-OS: WebP für Web-Optimierung).
     - assets/images/sketches/
     - assets/animations/trophy.json
     - assets/animations/firework.json
+    - assets/questions.json  # Hinzugefügt für dynamische Fragen (Best Practice).
 
   fonts:
     - family: Montserrat

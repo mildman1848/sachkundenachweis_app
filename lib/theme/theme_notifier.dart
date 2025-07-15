@@ -1,8 +1,11 @@
-// lib/theme/theme_notifier.dart
+// Pfad: lib/theme/theme_notifier.dart – Notifier für Theme-Wechsel und Management.
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Korrigierter Import für Flutter-Riverpod (Best Practice).
+import 'package:shared_preferences/shared_preferences.dart'; // Persistent Storage (Cross-OS kompatibel).
+import 'package:flutter/foundation.dart' show kDebugMode; // Für Debugging.
 
+// Enum für Theme-Modi (immutable, Best Practice).
 enum AppThemeMode {
   system,
   calmNature,
@@ -10,35 +13,37 @@ enum AppThemeMode {
   darkElegant,
 }
 
-class ThemeNotifier extends ChangeNotifier {
-  AppThemeMode _themeMode = AppThemeMode.system;
+// Provider-Definition für den Theme-Notifier (Riverpod-Best Practice).
+final themeNotifierProvider = StateNotifierProvider<ThemeNotifier, AppThemeState>((ref) => ThemeNotifier());
 
-  AppThemeMode get themeMode => _themeMode;
+// Theme-Notifier-Klasse (StateNotifier für Riverpod).
+class ThemeNotifier extends StateNotifier<AppThemeState> {
+  ThemeNotifier() : super(AppThemeState.initial()) {
+    _loadThemeMode(); // Asynchron laden beim Initialisieren.
+  }
 
-  set themeMode(AppThemeMode mode) {
-    if (_themeMode != mode) {
-      _themeMode = mode;
-      _saveThemeMode();
-      notifyListeners();
+  // Theme-Modus setzen und speichern.
+  void setThemeMode(AppThemeMode mode) {
+    if (state.mode != mode) {
+      state = state.copyWith(mode: mode);
+      _saveThemeMode(); // Persistent speichern.
     }
   }
 
-  // Für MaterialApp
+  // Für MaterialApp: ThemeMode abrufen (Cross-OS: System-Sync).
   ThemeMode get materialThemeMode {
-    switch (_themeMode) {
+    switch (state.mode) {
       case AppThemeMode.system:
         return ThemeMode.system;
-      case AppThemeMode.calmNature:
-      case AppThemeMode.brightMinimal:
-      case AppThemeMode.darkElegant:
-        // User-spezifisch: Wir liefern das eigentliche Theme später per getThemeData, daher immer light nehmen (ansonsten wird das Theme überschrieben).
+      default:
+        // User-spezifisch: Light als Default, da getThemeData Brightness handhabt.
         return ThemeMode.light;
     }
   }
 
-  /// Holt das passende ThemeData – je nach Theme-Auswahl und Brightness
+  /// Holt das passende ThemeData – je nach Theme-Auswahl und Brightness (Best Practice: Dynamic für Material You).
   ThemeData getThemeData(Brightness platformBrightness) {
-    switch (_themeMode) {
+    switch (state.mode) {
       case AppThemeMode.calmNature:
         return platformBrightness == Brightness.dark
             ? AppThemes.calmNatureDark
@@ -52,35 +57,46 @@ class ThemeNotifier extends ChangeNotifier {
             ? AppThemes.darkElegantDark
             : AppThemes.darkElegantLight;
       case AppThemeMode.system:
-        // System-Theme: Immer das passende CalmNature-Theme nehmen (das ist das Default-Design)
+        // System-Theme: CalmNature als Default (Cross-OS kompatibel).
         return platformBrightness == Brightness.dark
             ? AppThemes.calmNatureDark
             : AppThemes.calmNatureLight;
     }
   }
 
-  /// Initialisiert das gespeicherte Theme beim Start der App
-  Future<void> loadThemeMode() async {
+  /// Initialisiert das gespeicherte Theme beim Start der App (asynchron).
+  Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getInt('theme_mode');
     if (value != null && value >= 0 && value < AppThemeMode.values.length) {
-      _themeMode = AppThemeMode.values[value];
+      state = state.copyWith(mode: AppThemeMode.values[value]);
     } else {
-      _themeMode = AppThemeMode.system;
+      state = state.copyWith(mode: AppThemeMode.system);
     }
-    notifyListeners();
+    if (kDebugMode) debugPrint('Loaded theme: ${state.mode}'); // Debugging (Produktionstauglich).
   }
 
-  /// Speichert die Theme-Auswahl persistent
+  /// Speichert die Theme-Auswahl persistent (Cross-OS).
   Future<void> _saveThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('theme_mode', _themeMode.index);
+    await prefs.setInt('theme_mode', state.mode.index);
   }
 }
 
-// ---------- Themes ----------
+// Immutable State für den Theme-Notifier (copyWith für Updates, Best Practice).
+class AppThemeState {
+  final AppThemeMode mode;
+
+  AppThemeState({required this.mode});
+
+  factory AppThemeState.initial() => AppThemeState(mode: AppThemeMode.system);
+
+  AppThemeState copyWith({AppThemeMode? mode}) => AppThemeState(mode: mode ?? this.mode);
+}
+
+// ---------- Themes ---------- (Statische Theme-Definitionen, unverändert aber kommentiert).
 class AppThemes {
-  // Calm Nature – Light
+  // Calm Nature – Light (Beispiel für helles Design).
   static final ThemeData calmNatureLight = ThemeData(
     brightness: Brightness.light,
     primaryColor: const Color(0xFF388E3C),
@@ -106,7 +122,7 @@ class AppThemes {
     ),
   );
 
-  // Calm Nature – Dark
+  // Calm Nature – Dark (Beispiel für dunkles Design).
   static final ThemeData calmNatureDark = ThemeData(
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF29602E),
@@ -241,4 +257,12 @@ class AppThemes {
       backgroundColor: Color(0xFF23272A),
     ),
   );
+}
+
+// Hilfsklasse für Themes (Best Practice: Erweiterbar für Material You/Dynamic Colors).
+class AppTheme {
+  final ThemeData lightTheme;
+  final ThemeData darkTheme;
+
+  AppTheme({required this.lightTheme, required this.darkTheme});
 }

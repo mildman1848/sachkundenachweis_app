@@ -1,7 +1,6 @@
-// lib/data/question_categories.dart
-// Automatisch generiert aus Sachkundefragen-Loesungen-neu-ab-01.01.2025.pdf
+// Pfad: lib/data/question_categories.dart – Daten für Frage-Kategorien, basierend auf offiziellem PDF (automatisch generiert).
 
-// Alle Kategorie-Keys in Reihenfolge für z.B. Dropdown, Navigation etc.
+// Liste aller Kategorie-Keys in offizieller Reihenfolge (für Dropdown, Navigation etc., Best Practice: const für Immutability).
 const List<String> categoryKeys = [
   'ausdrucksverhalten_bilder',
   'ausdrucksverhalten_fragen',
@@ -25,7 +24,7 @@ const List<String> categoryKeys = [
   'oeffentlichkeit',
 ];
 
-// Kategorie-Key → Deutscher Titel
+// Map: Kategorie-Key → Deutscher Titel (Best Practice: const Map für schnelle Lookups).
 const Map<String, String> categoryTitles = {
   'ausdrucksverhalten_bilder': 'Ausdrucksverhalten Bilder',
   'ausdrucksverhalten_fragen': 'Ausdrucksverhalten Fragen',
@@ -49,7 +48,7 @@ const Map<String, String> categoryTitles = {
   'oeffentlichkeit': 'Öffentlichkeit',
 };
 
-// Kategorie-Key → Frage-IDs (direkt aus dem offiziellen Lösungen-PDF, Reihenfolge original)
+// Map: Kategorie-Key → Liste von Frage-IDs (aus offiziellem Lösungen-PDF, Reihenfolge original, Best Practice: final für statische Daten).
 final Map<String, List<int>> questionCategories = {
   'ausdrucksverhalten_bilder': [6, 16, 26, 46, 56, 65, 75],
   'ausdrucksverhalten_fragen': [1, 31, 41, 51, 61, 86, 88, 121, 126, 167],
@@ -72,3 +71,13 @@ final Map<String, List<int>> questionCategories = {
   'krankheiten': [40, 142, 144, 146, 152, 154, 156, 176, 180, 181],
   'oeffentlichkeit': [53, 95, 102, 104, 106, 108, 111, 116, 128, 191],
 };
+
+// Optionale Hilfsfunktion: Titel per Key abrufen (Best Practice: Skalierbar, Cross-OS neutral).
+String getCategoryTitle(String key) {
+  return categoryTitles[key] ?? 'Unbekannte Kategorie'; // Fallback für Robustheit.
+}
+
+// Optionale Hilfsfunktion: Frage-IDs per Key abrufen (Best Practice: Abstraktion für zukünftige Erweiterungen).
+List<int> getQuestionIdsByCategory(String key) {
+  return questionCategories[key] ?? []; // Fallback für leere Listen.
+}
