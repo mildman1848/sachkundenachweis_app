@@ -19,7 +19,7 @@ jobs:
     steps:
       # Schritt 1: Repository auschecken
       - name: ⬇️ Repository auschecken
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Schritt 2: Flutter SDK einrichten
       - name: 🛠️ Flutter SDK einrichten
@@ -32,7 +32,7 @@ jobs:
 
       # Schritt 3: Node.js einrichten
       - name: 🧰 Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: 'npm' # Cache für Node.js-Abhängigkeiten
