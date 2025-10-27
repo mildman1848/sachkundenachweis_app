@@ -19,7 +19,7 @@ jobs:
     steps:
       # Schritt 1: Repository auschecken
       - name: ⬇️ Repository auschecken
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Schritt 2: Flutter SDK einrichten
       - name: 🛠️ Flutter SDK einrichten
@@ -53,7 +53,7 @@ jobs:
 
       # Schritt 7: Web-Build als Artefakt speichern
       - name: 📤 Web-Build als Artefakt speichern
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-build
           path: build/web
