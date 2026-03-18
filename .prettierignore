@@ -1,0 +1,8 @@
+.dart_tool/
+.git/
+.idea/
+.metadata
+build/
+coverage/
+node_modules/
+*.apk
