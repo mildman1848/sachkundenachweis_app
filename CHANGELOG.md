@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 1.0.12 (2026-03-18)
 
+- Changed CodeQL to a manual informational workflow because this repository currently contains Flutter/Dart code, which GitHub CodeQL does not analyze directly.
+- Reworked the release workflow into a manual release pipeline so normal pushes no longer trigger failing release attempts.
+- Added version consistency checks across `package.json`, `pubspec.yaml`, and `VERSION` before release builds.
 ### 1.0.11 (2025-07-15)
 
 ### 1.0.10 (2025-07-15)
