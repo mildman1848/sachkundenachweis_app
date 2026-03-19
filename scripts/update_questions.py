@@ -1,31 +1,33 @@
 # scripts/update_questions.py – Skript zum Download, OCR und Update von questions.json.
 
-import requests
 import hashlib
-import os
 import json
+import os
 import re
-from io import BytesIO
+from pathlib import Path
+
 import fitz  # pymupdf für PDF-Text-Extraktion und Image-Extraction
-from PIL import Image
 import pytesseract  # Für OCR, falls textbasiert nicht möglich
+import requests
+from PIL import Image
 
 # PDF-URLs (aktualisiere bei Bedarf)
 QUESTIONS_URL = "https://www.tieraerztekammer-nordrhein.de/wp-content/uploads/2024/11/Sachkundefragen-neu-ab-01.01.2025.pdf"
 SOLUTIONS_URL = "https://www.tieraerztekammer-nordrhein.de/wp-content/uploads/2024/11/Sachkundefragen-Loesungen-neu-ab-01.01.2025.pdf"
 
 # Lokale Pfade
-QUESTIONS_PDF = "temp_questions.pdf"
-SOLUTIONS_PDF = "temp_solutions.pdf"
-JSON_PATH = "assets/questions.json"
-IMAGES_DIR = "assets/images"  # Verzeichnis für extrahierte Bilder
+BASE_DIR = Path(__file__).resolve().parent.parent
+QUESTIONS_PDF = BASE_DIR / "temp_questions.pdf"
+SOLUTIONS_PDF = BASE_DIR / "temp_solutions.pdf"
+JSON_PATH = BASE_DIR / "assets/questions.json"
+IMAGES_DIR = BASE_DIR / "assets/images"  # Verzeichnis für extrahierte Bilder
 
 # Stelle sicher, dass Verzeichnisse existieren
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
 def download_pdf(url, path):
     """PDF herunterladen."""
-    response = requests.get(url)
+    response = requests.get(url, timeout=60)
     if response.status_code == 200:
         with open(path, 'wb') as f:
             f.write(response.content)
@@ -43,14 +45,12 @@ def get_pdf_hash(path):
 
 def check_pdf_changed(url, local_path):
     """Prüfen, ob PDF geändert (Head-Request für Last-Modified, fallback Hash)."""
-    head = requests.head(url)
-    last_modified = head.headers.get('Last-Modified')
-    etag = head.headers.get('ETag')
+    requests.head(url, timeout=30)
 
     if os.path.exists(local_path):
         # Wenn ETag oder Last-Modified verfügbar, vergleichen (einfach, da local keine Metadaten speichert)
         # Für Einfachheit: Immer Hash vergleichen, wenn Download klein ist
-        temp_path = "temp.pdf"
+        temp_path = local_path.with_suffix(f"{local_path.suffix}.download")
         if download_pdf(url, temp_path):
             new_hash = get_pdf_hash(temp_path)
             old_hash = get_pdf_hash(local_path)
@@ -61,7 +61,9 @@ def check_pdf_changed(url, local_path):
                 os.remove(temp_path)
             return changed
     else:
-        return True  # Download if no local
+        if download_pdf(url, local_path):
+            return True
+        raise FileNotFoundError(f"Failed to download required PDF from {url}")
     return False
 
 def extract_text_from_pdf(path):
@@ -90,10 +92,10 @@ def extract_images_from_pdf(path):
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
             image_ext = base_image["ext"]
-            image_path = os.path.join(IMAGES_DIR, f"question_page{page_num}_img{img_index}.{image_ext}")
+            image_path = IMAGES_DIR / f"question_page{page_num}_img{img_index}.{image_ext}"
             with open(image_path, "wb") as image_file:
                 image_file.write(image_bytes)
-            images[(page_num, img_index)] = image_path
+            images[(page_num, img_index)] = str(image_path)
     doc.close()
     return images
 
