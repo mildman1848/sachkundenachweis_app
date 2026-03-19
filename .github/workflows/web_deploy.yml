@@ -53,7 +53,7 @@ jobs:
 
       # Schritt 7: Web-Build als Artefakt speichern
       - name: 📤 Web-Build als Artefakt speichern
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: web-build
           path: build/web
