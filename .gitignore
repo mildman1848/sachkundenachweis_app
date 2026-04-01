@@ -66,3 +66,6 @@ migrate_working_dir/
 
 # VS Code Workspace
 sachkundenachweis_app.code-workspace
+
+# Keep placeholder files
+!.gitkeep
