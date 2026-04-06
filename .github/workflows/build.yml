@@ -23,7 +23,7 @@ jobs:
           cache-path: ${{ runner.tool_cache }}/flutter
 
       - name: 🧰 Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
