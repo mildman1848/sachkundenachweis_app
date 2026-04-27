@@ -23,7 +23,7 @@ jobs:
           cache-path: ${{ runner.tool_cache }}/flutter
 
       - name: 🧰 Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -82,7 +82,7 @@ jobs:
           git push origin "v${version}"
 
       - name: 🗂 GitHub Release erstellen
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
