@@ -15,6 +15,11 @@ from PIL import Image
 QUESTIONS_URL = "https://www.tieraerztekammer-nordrhein.de/wp-content/uploads/2024/11/Sachkundefragen-neu-ab-01.01.2025.pdf"
 SOLUTIONS_URL = "https://www.tieraerztekammer-nordrhein.de/wp-content/uploads/2024/11/Sachkundefragen-Loesungen-neu-ab-01.01.2025.pdf"
 
+REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; sachkundenachweis-app PDF updater; +https://github.com/mildman1848/sachkundenachweis_app)",
+    "Accept": "application/pdf,*/*",
+}
+
 # Lokale Pfade
 BASE_DIR = Path(__file__).resolve().parent.parent
 QUESTIONS_PDF = BASE_DIR / "temp_questions.pdf"
@@ -27,11 +32,17 @@ os.makedirs(IMAGES_DIR, exist_ok=True)
 
 def download_pdf(url, path):
     """PDF herunterladen."""
-    response = requests.get(url, timeout=60)
-    if response.status_code == 200:
+    response = requests.get(url, headers=REQUEST_HEADERS, timeout=60)
+    content_type = response.headers.get("content-type", "").lower()
+    if (
+        response.status_code == 200
+        and response.content.startswith(b"%PDF")
+        and ("pdf" in content_type or content_type == "application/octet-stream")
+    ):
         with open(path, 'wb') as f:
             f.write(response.content)
         return True
+    print(f"Failed to download PDF: {url} status={response.status_code} content-type={content_type}")
     return False
 
 def get_pdf_hash(path):
@@ -45,7 +56,10 @@ def get_pdf_hash(path):
 
 def check_pdf_changed(url, local_path):
     """Prüfen, ob PDF geändert (Head-Request für Last-Modified, fallback Hash)."""
-    requests.head(url, timeout=30)
+    try:
+        requests.head(url, headers=REQUEST_HEADERS, timeout=30)
+    except requests.RequestException as exc:
+        print(f"HEAD request failed for {url}: {exc}; falling back to GET")
 
     if os.path.exists(local_path):
         # Wenn ETag oder Last-Modified verfügbar, vergleichen (einfach, da local keine Metadaten speichert)
@@ -176,9 +190,14 @@ def update_json():
         # Images extrahieren (optional, falls benötigt)
         extract_images_from_pdf(QUESTIONS_PDF)  # Extrahiert alle Bilder
         data = parse_to_json(questions_text, solutions_text)
+        if not data:
+            raise RuntimeError(
+                "PDFs were downloaded, but no questions were parsed. "
+                "Refusing to overwrite questions.json with an empty list."
+            )
         with open(JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print("questions.json updated.")
+        print(f"questions.json updated with {len(data)} questions.")
     else:
         print("No changes in PDFs.")
 

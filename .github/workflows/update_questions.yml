@@ -5,6 +5,9 @@ on:
     - cron: '0 0 * * *'  # Täglich um Mitternacht
   workflow_dispatch:  # Manuell ausführbar
 
+permissions:
+  contents: write
+
 jobs:
   update-questions:
     runs-on: ubuntu-latest
@@ -21,7 +24,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tesseract-ocr tesseract-ocr-deu poppler-utils
-          pip install requests pytesseract pymupdf pillow
+          python -m pip install --upgrade pip
+          python -m pip install requests pytesseract pymupdf pillow
 
       - name: Run Update Script
         run: python scripts/update_questions.py
