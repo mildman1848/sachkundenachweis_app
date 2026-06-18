@@ -176,6 +176,44 @@ def parse_to_json(questions_text, solutions_text):
 
     return questions
 
+
+def parse_solutions_map(solutions_text):
+    """Parse the solutions PDF text into question id -> correct answer indexes.
+
+    The chamber PDF is not emitted as a markdown table. PyMuPDF returns it as
+    alternating lines, e.g. ``Frage Nr.``, ``Lösung``, ``6``, ``C``.
+    Keep this parser deliberately conservative so ambiguous rows do not corrupt
+    the existing local question bank.
+    """
+    solutions = {}
+    lines = [line.strip() for line in solutions_text.split('\n') if line.strip()]
+    answer_re = re.compile(r'^[ABCD](?:,\s*[ABCD])*$')
+    for idx, line in enumerate(lines[:-1]):
+        if not re.fullmatch(r'\d{1,3}', line):
+            continue
+        answer_line = lines[idx + 1].replace(' ', '')
+        if not answer_re.fullmatch(answer_line):
+            continue
+        q_id = int(line)
+        answers = [ord(letter) - ord('A') for letter in answer_line.split(',') if letter in 'ABCD']
+        if answers:
+            solutions[q_id] = answers
+    return solutions
+
+
+def update_existing_questions_with_solutions(existing_questions, solutions):
+    """Return existing questions with refreshed correctAnswers where possible."""
+    updated = []
+    changed = False
+    for item in existing_questions:
+        q = dict(item)
+        q_id = q.get('id')
+        if isinstance(q_id, int) and q_id in solutions and q.get('correctAnswers') != solutions[q_id]:
+            q['correctAnswers'] = solutions[q_id]
+            changed = True
+        updated.append(q)
+    return updated, changed
+
 def update_json():
     """Hauptfunktion: Prüfen, Download, Extraktion, Update."""
     changed = False
@@ -191,10 +229,26 @@ def update_json():
         extract_images_from_pdf(QUESTIONS_PDF)  # Extrahiert alle Bilder
         data = parse_to_json(questions_text, solutions_text)
         if not data:
-            raise RuntimeError(
-                "PDFs were downloaded, but no questions were parsed. "
-                "Refusing to overwrite questions.json with an empty list."
+            print(
+                "PDFs were downloaded, but the question layout was not parsed. "
+                "Keeping existing questions.json and refreshing solutions where possible."
             )
+            if not JSON_PATH.exists():
+                raise RuntimeError(
+                    "PDFs were downloaded, but no questions were parsed and no existing "
+                    "questions.json is available as a safe fallback."
+                )
+            with open(JSON_PATH, 'r', encoding='utf-8') as f:
+                existing = json.load(f)
+            if not isinstance(existing, list) or not existing:
+                raise RuntimeError("Existing questions.json is empty or malformed; refusing fallback update.")
+            solutions = parse_solutions_map(solutions_text)
+            print(
+                f"Parsed {len(solutions)} solution rows, but skipped automatic fallback writes "
+                "because the question text layout could not be parsed safely."
+            )
+            print(f"Kept {len(existing)} existing questions unchanged.")
+            return
         with open(JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"questions.json updated with {len(data)} questions.")
